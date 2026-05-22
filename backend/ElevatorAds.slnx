@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ElevatorAds.Api/ElevatorAds.Api.csproj" />
+  <Project Path="ElevatorAds.Application/ElevatorAds.Application.csproj" />
+  <Project Path="ElevatorAds.Domain/ElevatorAds.Domain.csproj" />
+  <Project Path="ElevatorAds.Infrastructure/ElevatorAds.Infrastructure.csproj" />
+  <Project Path="ElevatorAds.Tests/ElevatorAds.Tests.csproj" />
+</Solution>
