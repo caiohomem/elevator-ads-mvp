@@ -2,7 +2,7 @@
 
 Elevator Ads MVP is a programmatic DOOH advertising platform for elevator screens.
 
-This repository currently contains the initial full-stack scaffold only. Business features, database integration, authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
+This repository currently contains the initial full-stack scaffold and the first inventory feature: Building management. Database integration, authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
 
 ## Tech Stack
 
@@ -36,6 +36,16 @@ Expected response:
 }
 ```
 
+The API also exposes Building management endpoints:
+
+```text
+GET    /api/buildings
+GET    /api/buildings/{id}
+POST   /api/buildings
+PUT    /api/buildings/{id}
+DELETE /api/buildings/{id}
+```
+
 ### Frontend
 
 ```bash
@@ -51,12 +61,13 @@ The admin app starts a basic landing page for the product.
 - Clean repository structure
 - Buildable .NET solution
 - Minimal API health endpoint
-- Backend test project with a health smoke test
+- Building management CRUD with in-memory persistence
+- Backend test project with health and building endpoint coverage
 - Basic Next.js admin app
 - Initial documentation
 
 ## Future Roadmap Summary
 
-Future phases include building management, screen management, advertiser and campaign management, creative management, next-ad decisions, proof-of-play tracking, reports, SSP/DSP models, auctioning, and an OpenRTB adapter.
+Future phases include screen management, advertiser and campaign management, creative management, next-ad decisions, proof-of-play tracking, reports, SSP/DSP models, auctioning, and an OpenRTB adapter.
 
 See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.
