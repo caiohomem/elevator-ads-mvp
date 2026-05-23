@@ -6,6 +6,7 @@ using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
+using ElevatorAds.Application.Playlists;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
@@ -31,7 +32,9 @@ builder.Services.AddSingleton<ICampaignCreativeRepository, InMemoryCampaignCreat
 builder.Services.AddSingleton<CampaignCreativeService>();
 builder.Services.AddSingleton<ICampaignDeliveryConstraintsRepository, InMemoryCampaignDeliveryConstraintsRepository>();
 builder.Services.AddSingleton<CampaignDeliveryConstraintsService>();
+builder.Services.AddSingleton<IDailyPlaylistRepository, InMemoryDailyPlaylistRepository>();
 builder.Services.AddSingleton<CampaignEligibilityService>();
+builder.Services.AddSingleton<PlaylistGenerationService>();
 
 var app = builder.Build();
 
@@ -105,6 +108,28 @@ screens.MapPost("/{id:guid}/status-check", async (Guid id, ScreenService service
 {
     var screen = await service.StatusCheckAsync(id);
     return screen is null ? Results.NotFound() : Results.Ok(screen);
+});
+
+screens.MapGet("/{screenId:guid}/playlists", async (Guid screenId, string? date, IScreenRepository screenRepository, PlaylistGenerationService service) =>
+{
+    if (await screenRepository.GetByIdAsync(screenId) is null)
+    {
+        return Results.NotFound();
+    }
+
+    DateOnly? parsedDate = null;
+    if (date is not null)
+    {
+        if (!TryParseDate(date, out var screenPlaylistDate))
+        {
+            return Results.UnprocessableEntity(new { error = "Date is required." });
+        }
+
+        parsedDate = screenPlaylistDate;
+    }
+
+    var playlists = await service.GetByScreenIdAsync(screenId, parsedDate);
+    return Results.Ok(playlists);
 });
 
 var advertisers = app.MapGroup("/api/advertisers");
@@ -268,6 +293,38 @@ campaigns.MapPut(
             ? Results.Ok(result.Value)
             : Results.UnprocessableEntity(new { error = result.Error });
     });
+
+var playlists = app.MapGroup("/api/playlists");
+
+playlists.MapPost("/generate", async (string? date, PlaylistGenerationService service) =>
+{
+    if (!TryParseDate(date, out var parsedDate))
+    {
+        return Results.UnprocessableEntity(new { error = "Date is required." });
+    }
+
+    var generated = await service.GenerateAsync(parsedDate);
+    return Results.Ok(generated);
+});
+
+playlists.MapGet("/", async (PlaylistGenerationService service) => Results.Ok(await service.GetAllAsync()));
+
+playlists.MapGet("/{id:guid}", async (Guid id, PlaylistGenerationService service) =>
+{
+    var playlist = await service.GetByIdAsync(id);
+    return playlist is null ? Results.NotFound() : Results.Ok(playlist);
+});
+
+playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationService service) =>
+{
+    var published = await service.PublishAsync(id);
+    return published is null
+        ? Results.UnprocessableEntity(new { error = "Playlist not found or cannot be published." })
+        : Results.Ok(published);
+});
+
+static bool TryParseDate(string? value, out DateOnly date) =>
+    DateOnly.TryParseExact(value, "yyyy-MM-dd", out date);
 
 app.Run();
 
