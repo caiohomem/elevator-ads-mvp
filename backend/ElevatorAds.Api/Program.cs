@@ -29,6 +29,9 @@ builder.Services.AddSingleton<ICampaignRepository, InMemoryCampaignRepository>()
 builder.Services.AddSingleton<CampaignService>();
 builder.Services.AddSingleton<ICampaignCreativeRepository, InMemoryCampaignCreativeRepository>();
 builder.Services.AddSingleton<CampaignCreativeService>();
+builder.Services.AddSingleton<ICampaignDeliveryConstraintsRepository, InMemoryCampaignDeliveryConstraintsRepository>();
+builder.Services.AddSingleton<CampaignDeliveryConstraintsService>();
+builder.Services.AddSingleton<CampaignEligibilityService>();
 
 var app = builder.Build();
 
@@ -249,6 +252,22 @@ campaigns.MapPost("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid 
 
 campaigns.MapDelete("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid campaignId, Guid creativeId, CampaignCreativeService service) =>
     await service.RemoveAsync(campaignId, creativeId) ? Results.NoContent() : Results.NotFound());
+
+campaigns.MapGet("/{campaignId:guid}/delivery-constraints", async (Guid campaignId, CampaignDeliveryConstraintsService service) =>
+{
+    var constraints = await service.GetByCampaignIdAsync(campaignId);
+    return constraints is null ? Results.NotFound() : Results.Ok(constraints);
+});
+
+campaigns.MapPut(
+    "/{campaignId:guid}/delivery-constraints",
+    async (Guid campaignId, CampaignDeliveryConstraintsService.UpsertDeliveryConstraintsRequest request, CampaignDeliveryConstraintsService service) =>
+    {
+        var result = await service.UpsertAsync(campaignId, request);
+        return result.IsSuccess
+            ? Results.Ok(result.Value)
+            : Results.UnprocessableEntity(new { error = result.Error });
+    });
 
 app.Run();
 
