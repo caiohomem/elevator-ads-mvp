@@ -3,6 +3,8 @@ using ElevatorAds.Application.Advertisers;
 using ElevatorAds.Application.Advertisers.Dtos;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
+using ElevatorAds.Application.Creatives;
+using ElevatorAds.Application.Creatives.Dtos;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
@@ -20,6 +22,8 @@ builder.Services.AddSingleton<IScreenRepository, InMemoryScreenRepository>();
 builder.Services.AddSingleton<ScreenService>();
 builder.Services.AddSingleton<IAdvertiserRepository, InMemoryAdvertiserRepository>();
 builder.Services.AddSingleton<AdvertiserService>();
+builder.Services.AddSingleton<ICreativeRepository, InMemoryCreativeRepository>();
+builder.Services.AddSingleton<CreativeService>();
 
 var app = builder.Build();
 
@@ -126,6 +130,71 @@ advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request
 
 advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =>
     await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+
+var creatives = app.MapGroup("/api/creatives");
+
+creatives.MapGet("/", async (CreativeService service) => Results.Ok(await service.GetAllAsync()));
+
+creatives.MapGet("/{id:guid}", async (Guid id, CreativeService service) =>
+{
+    var creative = await service.GetByIdAsync(id);
+    return creative is null ? Results.NotFound() : Results.Ok(creative);
+});
+
+creatives.MapPost("/", async (CreateCreativeRequest request, CreativeService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/creatives/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+});
+
+creatives.MapPut("/{id:guid}", async (Guid id, UpdateCreativeRequest request, CreativeService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
+
+creatives.MapDelete("/{id:guid}", async (Guid id, CreativeService service) =>
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+
+creatives.MapPost("/{id:guid}/submit-for-review", async (Guid id, CreativeService service) =>
+{
+    var result = await service.SubmitForReviewAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
+
+creatives.MapPost("/{id:guid}/approve", async (Guid id, CreativeService service) =>
+{
+    var result = await service.ApproveAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
+
+creatives.MapPost("/{id:guid}/reject", async (Guid id, CreativeService service) =>
+{
+    var result = await service.RejectAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
 
 app.Run();
 
