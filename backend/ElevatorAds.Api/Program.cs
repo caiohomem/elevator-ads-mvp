@@ -3,6 +3,7 @@ using ElevatorAds.Application.Advertisers;
 using ElevatorAds.Application.Advertisers.Dtos;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
+using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
 using ElevatorAds.Application.Screens;
@@ -24,6 +25,8 @@ builder.Services.AddSingleton<IAdvertiserRepository, InMemoryAdvertiserRepositor
 builder.Services.AddSingleton<AdvertiserService>();
 builder.Services.AddSingleton<ICreativeRepository, InMemoryCreativeRepository>();
 builder.Services.AddSingleton<CreativeService>();
+builder.Services.AddSingleton<ICampaignRepository, InMemoryCampaignRepository>();
+builder.Services.AddSingleton<CampaignService>();
 
 var app = builder.Build();
 
@@ -195,6 +198,38 @@ creatives.MapPost("/{id:guid}/reject", async (Guid id, CreativeService service) 
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
 });
+
+var campaigns = app.MapGroup("/api/campaigns");
+
+campaigns.MapGet("/", async (CampaignService service) => Results.Ok(await service.GetAllAsync()));
+
+campaigns.MapGet("/{id:guid}", async (Guid id, CampaignService service) =>
+{
+    var campaign = await service.GetByIdAsync(id);
+    return campaign is null ? Results.NotFound() : Results.Ok(campaign);
+});
+
+campaigns.MapPost("/", async (CampaignService.CreateCampaignRequest request, CampaignService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/campaigns/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+});
+
+campaigns.MapPut("/{id:guid}", async (Guid id, CampaignService.UpdateCampaignRequest request, CampaignService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
+
+campaigns.MapDelete("/{id:guid}", async (Guid id, CampaignService service) =>
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
 
 app.Run();
 
