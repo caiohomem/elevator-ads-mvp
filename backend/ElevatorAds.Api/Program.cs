@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using ElevatorAds.Application.Advertisers;
+using ElevatorAds.Application.Advertisers.Dtos;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Application.Screens;
@@ -16,6 +18,8 @@ builder.Services.AddSingleton<IBuildingRepository, InMemoryBuildingRepository>()
 builder.Services.AddSingleton<BuildingService>();
 builder.Services.AddSingleton<IScreenRepository, InMemoryScreenRepository>();
 builder.Services.AddSingleton<ScreenService>();
+builder.Services.AddSingleton<IAdvertiserRepository, InMemoryAdvertiserRepository>();
+builder.Services.AddSingleton<AdvertiserService>();
 
 var app = builder.Build();
 
@@ -90,6 +94,38 @@ screens.MapPost("/{id:guid}/status-check", async (Guid id, ScreenService service
     var screen = await service.StatusCheckAsync(id);
     return screen is null ? Results.NotFound() : Results.Ok(screen);
 });
+
+var advertisers = app.MapGroup("/api/advertisers");
+
+advertisers.MapGet("/", async (AdvertiserService service) => Results.Ok(await service.GetAllAsync()));
+
+advertisers.MapGet("/{id:guid}", async (Guid id, AdvertiserService service) =>
+{
+    var advertiser = await service.GetByIdAsync(id);
+    return advertiser is null ? Results.NotFound() : Results.Ok(advertiser);
+});
+
+advertisers.MapPost("/", async (CreateAdvertiserRequest request, AdvertiserService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/advertisers/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+});
+
+advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request, AdvertiserService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+});
+
+advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =>
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
 
 app.Run();
 
