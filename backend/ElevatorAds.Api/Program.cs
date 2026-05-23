@@ -27,6 +27,8 @@ builder.Services.AddSingleton<ICreativeRepository, InMemoryCreativeRepository>()
 builder.Services.AddSingleton<CreativeService>();
 builder.Services.AddSingleton<ICampaignRepository, InMemoryCampaignRepository>();
 builder.Services.AddSingleton<CampaignService>();
+builder.Services.AddSingleton<ICampaignCreativeRepository, InMemoryCampaignCreativeRepository>();
+builder.Services.AddSingleton<CampaignCreativeService>();
 
 var app = builder.Build();
 
@@ -230,6 +232,23 @@ campaigns.MapPut("/{id:guid}", async (Guid id, CampaignService.UpdateCampaignReq
 
 campaigns.MapDelete("/{id:guid}", async (Guid id, CampaignService service) =>
     await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+
+campaigns.MapGet("/{campaignId:guid}/creatives", async (Guid campaignId, CampaignCreativeService service) =>
+{
+    var result = await service.GetByCampaignIdAsync(campaignId);
+    return result.IsSuccess ? Results.Ok(result.Value) : Results.NotFound();
+});
+
+campaigns.MapPost("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid campaignId, Guid creativeId, CampaignCreativeService service) =>
+{
+    var result = await service.AssignAsync(campaignId, creativeId);
+    return result.IsSuccess
+        ? Results.Created($"/api/campaigns/{campaignId}/creatives/{creativeId}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+});
+
+campaigns.MapDelete("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid campaignId, Guid creativeId, CampaignCreativeService service) =>
+    await service.RemoveAsync(campaignId, creativeId) ? Results.NoContent() : Results.NotFound());
 
 app.Run();
 
