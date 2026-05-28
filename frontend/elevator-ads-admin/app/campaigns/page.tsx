@@ -2,11 +2,16 @@
 
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { StatusBadge } from "@/components/StatusBadge";
-import { campaigns } from "@/lib/mockData";
+import { getCampaigns } from "@/lib/api";
+import { useApiData } from "@/lib/api/useApiData";
 import type { Campaign } from "@/lib/types";
 
 export default function CampaignsPage() {
+  const state = useApiData(getCampaigns);
+
   const columns: TableColumn<Campaign>[] = [
     { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
     { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserName },
@@ -33,7 +38,9 @@ export default function CampaignsPage() {
 
   return (
     <ClientPageFrame section="campaigns">
-      <DataTable columns={columns} rows={campaigns} getRowKey={(row) => row.id} />
+      {state.status === "loading" ? <LoadingState /> : null}
+      {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
+      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
     </ClientPageFrame>
   );
 }

@@ -2,13 +2,17 @@
 
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getBuildings } from "@/lib/api";
+import { useApiData } from "@/lib/api/useApiData";
 import { useTranslation } from "@/lib/i18n";
-import { buildings } from "@/lib/mockData";
 import type { Building } from "@/lib/types";
 
 export default function BuildingsPage() {
   const { dictionary } = useTranslation();
+  const state = useApiData(getBuildings);
 
   const columns: TableColumn<Building>[] = [
     { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
@@ -36,7 +40,9 @@ export default function BuildingsPage() {
         </button>
       }
     >
-      <DataTable columns={columns} rows={buildings} getRowKey={(row) => row.id} />
+      {state.status === "loading" ? <LoadingState /> : null}
+      {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
+      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
     </ClientPageFrame>
   );
 }

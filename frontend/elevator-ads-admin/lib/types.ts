@@ -99,3 +99,92 @@ export interface ActivityEvent {
   detail: string;
   time: string;
 }
+
+export interface ApiBuilding {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  buildingType: string;
+  estimatedDailyAudience: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiScreen {
+  id: string;
+  buildingId: string;
+  name: string;
+  externalCode: string;
+  resolutionWidth: number;
+  resolutionHeight: number;
+  orientation: string;
+  status: string;
+  lastSeenAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiAdvertiser {
+  id: string;
+  name: string;
+  legalName: string;
+  taxId: string;
+  contactName: string;
+  contactEmail: string;
+  phone: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiCreative {
+  id: string;
+  advertiserId: string;
+  name: string;
+  mediaUrl: string;
+  mediaType: string;
+  durationSeconds: number;
+  approvalStatus: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiCampaign {
+  id: string;
+  advertiserId: string;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  status: string;
+  dailyBudget: number | null;
+  totalBudget: number | null;
+  maxCpm: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiDailyPlaylistItem {
+  id: string;
+  dailyPlaylistId: string;
+  campaignId: string;
+  creativeId: string;
+  order: number;
+  durationSeconds: number;
+  createdAt: string;
+}
+
+export interface ApiDailyPlaylist {
+  id: string;
+  screenId: string;
+  date: string;
+  version: number;
+  status: string;
+  generatedAt: string;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: ApiDailyPlaylistItem[];
+}
