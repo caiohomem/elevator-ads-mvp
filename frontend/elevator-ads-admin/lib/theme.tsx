@@ -18,23 +18,31 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
-
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
-      return stored;
-    }
-
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  });
+  const [theme, setThemeState] = useState<Theme>("light");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    const initialTheme =
+      stored === "light" || stored === "dark"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+    setThemeState(initialTheme);
+    applyTheme(initialTheme);
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
     applyTheme(theme);
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-  }, [theme]);
+  }, [isHydrated, theme]);
 
   const setTheme = (nextTheme: Theme) => {
     setThemeState(nextTheme);
