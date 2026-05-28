@@ -26,12 +26,23 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
     const initialLocale = stored === "en" || stored === "pt" ? stored : "en";
 
-    setLocaleState(initialLocale);
-    document.documentElement.lang = initialLocale;
-    setIsHydrated(true);
+    queueMicrotask(() => {
+      if (!active) {
+        return;
+      }
+
+      setLocaleState(initialLocale);
+      document.documentElement.lang = initialLocale;
+      setIsHydrated(true);
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

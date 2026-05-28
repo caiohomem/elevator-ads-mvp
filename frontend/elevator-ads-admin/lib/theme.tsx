@@ -22,6 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
     const initialTheme =
       stored === "light" || stored === "dark"
@@ -30,9 +31,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           ? "dark"
           : "light";
 
-    setThemeState(initialTheme);
-    applyTheme(initialTheme);
-    setIsHydrated(true);
+    queueMicrotask(() => {
+      if (!active) {
+        return;
+      }
+
+      setThemeState(initialTheme);
+      applyTheme(initialTheme);
+      setIsHydrated(true);
+    });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {

@@ -23,7 +23,11 @@ export const pt: TranslationDictionary = {
     dark: "Escuro",
     mobileMenu: "Menu",
     close: "Fechar",
-    noData: "Nenhum dado disponivel.",
+    noData: "Nenhum dado encontrado.",
+    loading: "Carregando dados...",
+    errorLoading: "Erro ao carregar dados",
+    retry: "Tentar novamente",
+    apiUnavailable: "API indisponivel. Exibindo dados de fallback quando possivel.",
     newBuilding: "Novo edificio",
     recentActivity: "Atividade recente",
     mockedData: "Dados simulados",
@@ -93,6 +97,6 @@ export const pt: TranslationDictionary = {
     languagePreference: "Preferencia de idioma",
     environmentInfo: "Informacoes do ambiente",
     environmentDescription:
-      "A integracao com backend ainda nao esta conectada. Esta interface usa dados simulados por enquanto.",
+      "Defina NEXT_PUBLIC_API_BASE_URL para conectar o frontend admin a API do backend.",
   },
 };

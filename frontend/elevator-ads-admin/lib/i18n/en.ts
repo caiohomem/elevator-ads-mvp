@@ -22,6 +22,10 @@ export interface TranslationDictionary {
     mobileMenu: string;
     close: string;
     noData: string;
+    loading: string;
+    errorLoading: string;
+    retry: string;
+    apiUnavailable: string;
     newBuilding: string;
     recentActivity: string;
     mockedData: string;
@@ -91,7 +95,11 @@ export const en: TranslationDictionary = {
     dark: "Dark",
     mobileMenu: "Menu",
     close: "Close",
-    noData: "No data available yet.",
+    noData: "No data found.",
+    loading: "Loading data...",
+    errorLoading: "Error loading data",
+    retry: "Retry",
+    apiUnavailable: "API unavailable. Showing fallback data where possible.",
     newBuilding: "New building",
     recentActivity: "Recent activity",
     mockedData: "Mocked data",
@@ -161,6 +169,6 @@ export const en: TranslationDictionary = {
     languagePreference: "Language preference",
     environmentInfo: "Environment information",
     environmentDescription:
-      "Backend wiring is not connected yet. This shell currently serves mocked operational data.",
+      "Set NEXT_PUBLIC_API_BASE_URL to connect the admin frontend to the backend API.",
   },
 };

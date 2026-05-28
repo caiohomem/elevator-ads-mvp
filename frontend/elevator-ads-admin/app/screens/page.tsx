@@ -2,11 +2,16 @@
 
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { StatusBadge } from "@/components/StatusBadge";
-import { screens } from "@/lib/mockData";
+import { getScreens } from "@/lib/api";
+import { useApiData } from "@/lib/api/useApiData";
 import type { Screen } from "@/lib/types";
 
 export default function ScreensPage() {
+  const state = useApiData(getScreens);
+
   const columns: TableColumn<Screen>[] = [
     { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
     { key: "building", header: "Building", render: (row) => row.buildingName },
@@ -31,7 +36,9 @@ export default function ScreensPage() {
 
   return (
     <ClientPageFrame section="screens">
-      <DataTable columns={columns} rows={screens} getRowKey={(row) => row.id} />
+      {state.status === "loading" ? <LoadingState /> : null}
+      {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
+      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
     </ClientPageFrame>
   );
 }

@@ -12,13 +12,29 @@ Admin frontend shell for the Elevator Ads MVP.
 - Pages for buildings, screens, advertisers, creatives, campaigns, playlists, reports, and settings
 - English and Portuguese language structure
 - Light and dark mode toggle with local persistence
-- Mocked data only for now
+- API-backed resource pages with loading, error, empty, and data states
 
-The current delivery model is scheduled DOOH playlist publishing and download. No authentication, real API integration, or real-time ad serving is included here.
+The current delivery model is scheduled DOOH playlist publishing and download. No authentication or real-time ad serving is included here.
+
+## API Configuration
+
+Copy `.env.example` to `.env.local` for local development and set the backend base URL:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
+
+The Next.js app proxies `/api/*` requests to this backend URL so browser requests do not require backend CORS configuration.
 
 ## Run
 
-Install dependencies and start the development server:
+Start the backend API from the repository root:
+
+```bash
+dotnet run --project backend/ElevatorAds.Api
+```
+
+In a second terminal, install dependencies and start the frontend development server:
 
 ```bash
 npm install
@@ -43,5 +59,7 @@ npm run lint
 
 - Supported languages: `en`, `pt`
 - Theme support: light, dark
-- Data source: centralized mock data in `lib/mockData.ts`
-- Future backend integration can replace the async helpers in `lib/api.ts`
+- API client: `lib/api/client.ts`
+- API-backed pages: buildings, screens, advertisers, creatives, campaigns, daily playlists
+- Mock-only: dashboard summary, recent activity, and placeholder reports until backend endpoints exist
+- When the API is unavailable, resource pages show a translated error state instead of silently falling back to mock data
