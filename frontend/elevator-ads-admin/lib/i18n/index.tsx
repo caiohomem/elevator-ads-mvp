@@ -22,19 +22,26 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") {
-      return "en";
-    }
-
-    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
-    return stored === "en" || stored === "pt" ? stored : "en";
-  });
+  const [locale, setLocaleState] = useState<Locale>("en");
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+    const initialLocale = stored === "en" || stored === "pt" ? stored : "en";
+
+    setLocaleState(initialLocale);
+    document.documentElement.lang = initialLocale;
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
     document.documentElement.lang = locale;
     window.localStorage.setItem(LOCALE_STORAGE_KEY, locale);
-  }, [locale]);
+  }, [isHydrated, locale]);
 
   const setLocale = (nextLocale: Locale) => {
     setLocaleState(nextLocale);
