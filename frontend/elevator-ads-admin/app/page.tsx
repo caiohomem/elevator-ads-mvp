@@ -1,8 +1,10 @@
 "use client";
 
 import { SummaryCard } from "@/components/SummaryCard";
+import { getDashboardSummary, getRecentActivity } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
-import { dashboardSummary, recentActivity } from "@/lib/mockData";
+import type { ActivityEvent, DashboardSummary } from "@/lib/types";
+import { useEffect, useState } from "react";
 
 const cardDescriptions = {
   buildings: "Live inventory across elevator-enabled properties.",
@@ -17,6 +19,36 @@ const cardDescriptions = {
 
 export default function Home() {
   const { dictionary } = useTranslation();
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
+  const [recentActivity, setRecentActivity] = useState<ActivityEvent[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([getDashboardSummary(), getRecentActivity()]).then(([summary, activity]) => {
+      if (!active) {
+        return;
+      }
+
+      setDashboardSummary(summary);
+      setRecentActivity(activity);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!dashboardSummary) {
+    return (
+      <section className="space-y-6">
+        <div className="panel rounded-[32px] px-6 py-7 text-sm font-semibold text-[var(--foreground)] sm:px-8">
+          {dictionary.common.loading}
+        </div>
+      </section>
+    );
+  }
+
   const cards = [
     ["buildings", dashboardSummary.buildings],
     ["screens", dashboardSummary.screens],
