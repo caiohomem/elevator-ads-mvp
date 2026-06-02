@@ -1,4 +1,4 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiFetch, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
 import type { ApiBuilding, ApiScreen, Building, BuildingType } from "@/lib/types";
 
 const buildingsEndpoint = "/api/buildings";
@@ -15,7 +15,14 @@ export async function getBuildings(): Promise<ApiResult<Building[]>> {
   }
 
   if (!screensResult.ok) {
-    return screensResult;
+    logDependentEndpointWarning(screensEndpoint, screensResult, "building screen counts = 0 and status = Inactive");
+  }
+
+  if (!screensResult.ok) {
+    return {
+      ok: true,
+      data: buildingsResult.data.map((building) => mapBuilding(building, new Map(), new Map())),
+    };
   }
 
   const screenCounts = new Map<string, number>();
