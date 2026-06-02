@@ -35,6 +35,7 @@ builder.Services.AddSingleton<CampaignDeliveryConstraintsService>();
 builder.Services.AddSingleton<IDailyPlaylistRepository, InMemoryDailyPlaylistRepository>();
 builder.Services.AddSingleton<CampaignEligibilityService>();
 builder.Services.AddSingleton<PlaylistGenerationService>();
+builder.Services.AddSingleton<PlaylistDownloadService>();
 
 var app = builder.Build();
 
@@ -130,6 +131,36 @@ screens.MapGet("/{screenId:guid}/playlists", async (Guid screenId, string? date,
 
     var playlists = await service.GetByScreenIdAsync(screenId, parsedDate);
     return Results.Ok(playlists);
+});
+
+screens.MapGet("/{screenId:guid}/playlist/current", async (Guid screenId, PlaylistDownloadService service) =>
+{
+    var playlist = await service.GetCurrentAsync(screenId);
+    return playlist is null ? Results.NotFound() : Results.Ok(playlist);
+});
+
+screens.MapGet("/{screenId:guid}/playlist", async (Guid screenId, string? date, PlaylistDownloadService service) =>
+{
+    if (!TryParseDate(date, out var parsedDate))
+    {
+        return Results.UnprocessableEntity(new { error = "Date is required." });
+    }
+
+    var playlist = await service.GetByDateAsync(screenId, parsedDate);
+    return playlist is null ? Results.NotFound() : Results.Ok(playlist);
+});
+
+screens.MapPost("/{screenId:guid}/playlist/{playlistId:guid}/downloaded", async (Guid screenId, Guid playlistId, PlaylistDownloadService service) =>
+{
+    var result = await service.MarkDownloadedAsync(screenId, playlistId);
+    if (result.IsSuccess)
+    {
+        return Results.Ok(result.Value);
+    }
+
+    return result.WasFound
+        ? Results.UnprocessableEntity(new { error = result.Error })
+        : Results.NotFound();
 });
 
 var advertisers = app.MapGroup("/api/advertisers");
