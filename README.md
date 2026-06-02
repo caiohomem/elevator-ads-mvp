@@ -58,6 +58,24 @@ npm run dev
 
 The admin app starts a basic landing page for the product.
 
+## Docker Compose
+
+Run the stack with its own PostgreSQL container:
+
+```bash
+docker compose up -d --build
+```
+
+Published ports:
+
+```text
+Frontend: http://localhost:3001
+Backend:  http://localhost:8081
+Postgres: localhost:5434
+```
+
+This Compose stack uses its own named volume, `elevator_ads_postgres_data`. The current application code still uses in-memory repositories, so the Postgres service is provisioned and isolated for this project, but it is not yet consumed by the running API.
+
 ## Current Scope
 
 - Clean repository structure

@@ -1,0 +1,12 @@
+.git
+.agent
+.agents
+.codex
+**/bin
+**/obj
+**/node_modules
+**/.next
+**/TestResults
+**/*.user
+**/*.suo
+**/.DS_Store

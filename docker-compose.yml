@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: elevator-ads-postgres
+    environment:
+      POSTGRES_DB: elevator_ads
+      POSTGRES_USER: elevator_ads
+      POSTGRES_PASSWORD: elevator_ads
+    ports:
+      - "5434:5432"
+    volumes:
+      - elevator_ads_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U elevator_ads -d elevator_ads"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/ElevatorAds.Api/Dockerfile
+    container_name: elevator-ads-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=elevator_ads;Username=elevator_ads;Password=elevator_ads
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/elevator-ads-admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://backend:8080
+    container_name: elevator-ads-web
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: http://backend:8080
+    ports:
+      - "3001:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  elevator_ads_postgres_data:
