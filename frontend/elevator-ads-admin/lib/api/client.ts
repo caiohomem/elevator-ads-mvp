@@ -4,6 +4,7 @@ export interface ApiError {
 }
 
 export type ApiResult<T> = { ok: true; data: T } | ({ ok: false } & ApiError);
+export type ApiResource<T> = { ok: true; data: T };
 
 export async function apiFetch<T>(path: string): Promise<ApiResult<T>> {
   const requestUrl = buildRequestUrl(path);
@@ -60,4 +61,16 @@ function buildRequestUrl(path: string) {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
   return new URL(path, baseUrl).toString();
+}
+
+export function logDependentEndpointWarning(endpoint: string, error: ApiError, fallback: string) {
+  console.warn(`API request to ${endpoint} failed (${error.status}): ${error.message}. Falling back to ${fallback}.`);
+}
+
+export function withMockFallback<T>(endpoint: string, error: ApiError, fallbackData: T): ApiResource<T> {
+  logDependentEndpointWarning(endpoint, error, "mock fallback data");
+  return {
+    ok: true,
+    data: fallbackData,
+  };
 }

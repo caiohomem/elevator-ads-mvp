@@ -46,6 +46,7 @@ export async function getDailyPlaylists(): Promise<ApiResource<DailyPlaylist[]>>
   const creativeNamesById = new Map(creativesResult.data.map((creative) => [creative.id, creative.name] as const));
 
   return {
+    ok: true,
     data: playlistsResult.data.map((playlist) =>
       mapPlaylist(playlist, screenNamesById, buildingIdByScreenId, buildingNamesById, creativeNamesById),
     ),
