@@ -6,6 +6,8 @@ using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
+using ElevatorAds.Application.PlaybackReports;
+using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Application.Playlists;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
@@ -69,6 +71,8 @@ builder.Services.AddSingleton<IDailyPlaylistRepository, InMemoryDailyPlaylistRep
 builder.Services.AddSingleton<CampaignEligibilityService>();
 builder.Services.AddSingleton<PlaylistGenerationService>();
 builder.Services.AddSingleton<PlaylistDownloadService>();
+builder.Services.AddSingleton<IProofOfPlayEventRepository, InMemoryProofOfPlayEventRepository>();
+builder.Services.AddSingleton<ProofOfPlayService>();
 
 var app = builder.Build();
 
@@ -197,6 +201,22 @@ screens.MapPost("/{screenId:guid}/playlist/{playlistId:guid}/downloaded", async 
         ? Results.UnprocessableEntity(new { error = result.Error })
         : Results.NotFound();
 });
+
+screens.MapPost("/{screenId:guid}/playback-reports", async (Guid screenId, CreatePlaybackReportRequest request, ProofOfPlayService service) =>
+{
+    var result = await service.CreateAsync(screenId, request);
+    if (result.IsSuccess)
+    {
+        return Results.Created($"/api/screens/{screenId}/playback-reports", result.Value);
+    }
+
+    return result.WasFound
+        ? Results.UnprocessableEntity(new { error = result.Error })
+        : Results.NotFound();
+});
+
+screens.MapGet("/{screenId:guid}/playback-reports", async (Guid screenId, ProofOfPlayService service) =>
+    Results.Ok(await service.GetByScreenAsync(screenId)));
 
 var advertisers = app.MapGroup("/api/advertisers");
 
@@ -360,6 +380,9 @@ campaigns.MapPut(
             : Results.UnprocessableEntity(new { error = result.Error });
     });
 
+campaigns.MapGet("/{campaignId:guid}/playback-reports", async (Guid campaignId, ProofOfPlayService service) =>
+    Results.Ok(await service.GetByCampaignAsync(campaignId)));
+
 var playlists = app.MapGroup("/api/playlists");
 
 playlists.MapPost("/generate", async (string? date, PlaylistGenerationService service) =>
@@ -388,6 +411,10 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
         ? Results.UnprocessableEntity(new { error = "Playlist not found or cannot be published." })
         : Results.Ok(published);
 });
+
+var playbackReports = app.MapGroup("/api/playback-reports");
+
+playbackReports.MapGet("/", async (ProofOfPlayService service) => Results.Ok(await service.GetAllAsync()));
 
 static bool TryParseDate(string? value, out DateOnly date) =>
     DateOnly.TryParseExact(value, "yyyy-MM-dd", out date);
