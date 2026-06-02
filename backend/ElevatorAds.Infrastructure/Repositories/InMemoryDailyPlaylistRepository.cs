@@ -1,4 +1,5 @@
 using ElevatorAds.Domain.Entities;
+using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
 
 namespace ElevatorAds.Infrastructure.Repositories;
@@ -25,6 +26,16 @@ public sealed class InMemoryDailyPlaylistRepository : IDailyPlaylistRepository
     {
         var playlist = _playlists.Values
             .Where(item => item.ScreenId == screenId && item.Date == date)
+            .OrderByDescending(item => item.Version)
+            .FirstOrDefault();
+
+        return Task.FromResult(playlist);
+    }
+
+    public Task<DailyPlaylist?> GetLatestPublishedByScreenAndDateAsync(Guid screenId, DateOnly date)
+    {
+        var playlist = _playlists.Values
+            .Where(item => item.ScreenId == screenId && item.Date == date && item.Status == DailyPlaylistStatus.Published)
             .OrderByDescending(item => item.Version)
             .FirstOrDefault();
 
