@@ -2,13 +2,17 @@
 
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
+import { ErrorState } from "@/components/ErrorState";
+import { LoadingState } from "@/components/LoadingState";
 import { StatusBadge } from "@/components/StatusBadge";
+import { getDailyPlaylists } from "@/lib/api";
+import { useApiData } from "@/lib/api/useApiData";
 import { useTranslation } from "@/lib/i18n";
-import { dailyPlaylists } from "@/lib/mockData";
 import type { DailyPlaylist } from "@/lib/types";
 
 export default function PlaylistsPage() {
   const { dictionary } = useTranslation();
+  const state = useApiData(getDailyPlaylists);
 
   const columns: TableColumn<DailyPlaylist>[] = [
     { key: "date", header: "Date", render: (row) => <span className="font-mono text-xs">{row.date}</span> },
@@ -39,7 +43,9 @@ export default function PlaylistsPage() {
       <div className="panel rounded-[28px] px-5 py-4 text-sm leading-6 text-[var(--muted)]">
         {dictionary.pages.playlists.note}
       </div>
-      <DataTable columns={columns} rows={dailyPlaylists} getRowKey={(row) => row.id} />
+      {state.status === "loading" ? <LoadingState /> : null}
+      {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
+      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
     </ClientPageFrame>
   );
 }
