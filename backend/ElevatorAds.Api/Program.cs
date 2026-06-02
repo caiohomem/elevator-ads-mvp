@@ -13,10 +13,43 @@ using ElevatorAds.Domain.Interfaces;
 using ElevatorAds.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+const string FrontendCorsPolicy = "Frontend";
+var configuredCorsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>()?
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray()
+    ?? Array.Empty<string>();
+
+var allowedCorsOrigins = configuredCorsOrigins.Length > 0
+    ? configuredCorsOrigins
+    : builder.Environment.IsDevelopment()
+        ? new[]
+        {
+            "http://localhost:3000",
+            "http://127.0.0.1:3000"
+        }
+        : Array.Empty<string>();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+    {
+        if (allowedCorsOrigins.Length == 0)
+        {
+            return;
+        }
+
+        policy
+            .WithOrigins(allowedCorsOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 builder.Services.AddSingleton<IBuildingRepository, InMemoryBuildingRepository>();
 builder.Services.AddSingleton<BuildingService>();
@@ -38,6 +71,8 @@ builder.Services.AddSingleton<PlaylistGenerationService>();
 builder.Services.AddSingleton<PlaylistDownloadService>();
 
 var app = builder.Build();
+
+app.UseCors(FrontendCorsPolicy);
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 

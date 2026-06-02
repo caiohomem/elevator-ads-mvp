@@ -24,6 +24,8 @@ dotnet test
 dotnet run --project ElevatorAds.Api
 ```
 
+The API listens on `http://localhost:5000` in local development.
+
 The API exposes a health endpoint at:
 
 ```text
@@ -48,6 +50,13 @@ PUT    /api/buildings/{id}
 DELETE /api/buildings/{id}
 ```
 
+For local frontend integration, the API applies a config-driven CORS policy. In `Development`, local admin origins are allowed by default:
+
+- `http://localhost:3000`
+- `http://127.0.0.1:3000`
+
+Other environments do not allow cross-origin browser access unless `Cors:AllowedOrigins` is explicitly configured.
+
 ### Frontend
 
 ```bash
@@ -56,7 +65,20 @@ npm install
 npm run dev
 ```
 
-The admin app starts a basic landing page for the product.
+The admin app runs on `http://localhost:3000`.
+
+Create a local frontend env file from the example and point it to the backend API:
+
+```bash
+cd frontend/elevator-ads-admin
+cp .env.example .env.local
+```
+
+```text
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+```
+
+The admin app includes both a Next.js rewrite proxy and direct browser requests to `NEXT_PUBLIC_API_BASE_URL`, so the backend CORS settings above are required for local cross-origin API calls.
 
 ## Current Scope
 
