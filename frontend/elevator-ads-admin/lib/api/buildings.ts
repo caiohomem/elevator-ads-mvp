@@ -1,5 +1,5 @@
-import { apiFetch, apiMutate, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
-import type { ApiBuilding, ApiScreen, Building, BuildingType } from "@/lib/types";
+import { apiFetch, apiFetchPaged, apiMutate, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
+import type { ApiBuilding, ApiScreen, Building, BuildingType, PagedQuery, PagedResult } from "@/lib/types";
 
 const buildingsEndpoint = "/api/buildings";
 const screensEndpoint = "/api/screens";
@@ -66,6 +66,12 @@ export async function getBuildings(): Promise<ApiResult<Building[]>> {
 
 export async function getBuildingsList(): Promise<ApiResult<ApiBuilding[]>> {
   return apiFetch<ApiBuilding[]>(buildingsEndpoint);
+}
+
+export async function getBuildingsPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiBuilding>>> {
+  return apiFetchPaged<ApiBuilding>(buildingsEndpoint, query);
 }
 
 function mapBuilding(

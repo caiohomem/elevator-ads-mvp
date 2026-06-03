@@ -9,18 +9,20 @@ import { DataTable, type TableColumn } from "@/components/DataTable";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { Modal } from "@/components/Modal";
+import { PaginationControls } from "@/components/PaginationControls";
 import { StatusBadge } from "@/components/StatusBadge";
-import { getAdvertisersList, getCampaigns, getCampaignsList } from "@/lib/api";
+import { TableFilters } from "@/components/TableFilters";
+import { getAdvertisersList, getCampaignsPaged } from "@/lib/api";
 import { useApiData } from "@/lib/api/useApiData";
+import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
-import type { ApiCampaign, Campaign } from "@/lib/types";
+import type { ApiCampaign } from "@/lib/types";
 
 export default function CampaignsPage() {
   const { dictionary } = useTranslation();
   const forms = dictionary.forms;
 
-  const state = useApiData(getCampaigns);
-  const rawState = useApiData(getCampaignsList);
+  const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getCampaignsPaged, "campaigns");
   const advertisersState = useApiData(getAdvertisersList);
 
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
@@ -38,15 +40,14 @@ export default function CampaignsPage() {
     setCampaignModalOpen(true);
   };
 
-  const openEditCampaign = (raw: ApiCampaign) => {
-    setEditing(raw);
+  const openEditCampaign = (campaign: ApiCampaign) => {
+    setEditing(campaign);
     setCampaignModalOpen(true);
   };
 
   const handleCampaignSuccess = () => {
     closeCampaignModal();
     state.retry();
-    rawState.retry();
   };
 
   const closeAssignModal = () => {
@@ -59,9 +60,9 @@ export default function CampaignsPage() {
     state.retry();
   };
 
-  const columns: TableColumn<Campaign>[] = [
+  const columns: TableColumn<ApiCampaign>[] = [
     { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
-    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserName },
+    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserId },
     { key: "status", header: "Status", render: (row) => <StatusBadge status={row.status} /> },
     {
       key: "startDate",
@@ -73,30 +74,24 @@ export default function CampaignsPage() {
       header: "End date",
       render: (row) => <span className="font-mono text-xs">{row.endDate}</span>,
     },
-    { key: "budget", header: "Daily budget", render: (row) => `€${row.dailyBudget}` },
-    { key: "creatives", header: "Creatives", render: (row) => row.creatives },
+    { key: "budget", header: "Daily budget", render: (row) => (row.dailyBudget === null ? "-" : `€${row.dailyBudget}`) },
     {
-      key: "constraints",
-      header: "Delivery constraints",
-      render: (row) => row.deliveryConstraints,
-      className: "min-w-[220px]",
+      key: "totalBudget",
+      header: "Total budget",
+      render: (row) => (row.totalBudget === null ? "-" : `€${row.totalBudget}`),
     },
     {
       key: "actions",
       header: "",
       className: "text-right",
       render: (row) => {
-        const raw = rawState.status === "ok" ? rawState.data.find((c) => c.id === row.id) : undefined;
         return (
           <div className="flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={() => {
-                if (raw) {
-                  setAssignModal({ campaignId: row.id, advertiserId: row.advertiserId });
-                }
+                setAssignModal({ campaignId: row.id, advertiserId: row.advertiserId });
               }}
-              disabled={!raw}
               className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
             >
               {forms.manageCreatives}
@@ -104,11 +99,8 @@ export default function CampaignsPage() {
             <button
               type="button"
               onClick={() => {
-                if (raw) {
-                  setConstraintsCampaignId(row.id);
-                }
+                setConstraintsCampaignId(row.id);
               }}
-              disabled={!raw}
               className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
             >
               {forms.deliveryConstraints.edit}
@@ -116,11 +108,8 @@ export default function CampaignsPage() {
             <button
               type="button"
               onClick={() => {
-                if (raw) {
-                  openEditCampaign(raw);
-                }
+                openEditCampaign(row);
               }}
-              disabled={!raw}
               className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
             >
               {forms.edit}
@@ -144,9 +133,33 @@ export default function CampaignsPage() {
         </button>
       }
     >
+      <TableFilters
+        search={query.search ?? ""}
+        onSearchChange={setSearch}
+        status={query.status}
+        onStatusChange={setStatus}
+        statusOptions={[
+          { value: "Draft", label: "Draft" },
+          { value: "Scheduled", label: "Scheduled" },
+          { value: "Active", label: "Active" },
+          { value: "Paused", label: "Paused" },
+        ]}
+      />
       {state.status === "loading" ? <LoadingState /> : null}
       {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
-      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
+      {state.status === "ok" ? (
+        <>
+          <DataTable columns={columns} rows={state.data.items} getRowKey={(row) => row.id} />
+          <PaginationControls
+            page={state.data.page}
+            totalPages={state.data.totalPages}
+            totalItems={state.data.totalItems}
+            pageSize={state.data.pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
+      ) : null}
 
       <Modal
         open={campaignModalOpen}

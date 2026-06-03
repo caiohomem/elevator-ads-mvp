@@ -5,6 +5,23 @@ export type ApprovalStatus = "Draft" | "PendingReview" | "Approved" | "Rejected"
 export type CampaignStatus = "Draft" | "Scheduled" | "Active" | "Paused";
 export type PlaylistStatus = "Draft" | "Published" | "Downloaded" | "Expired";
 
+export interface PagedQuery {
+  page: number;
+  pageSize: number;
+  sortBy?: string;
+  sortDirection?: "asc" | "desc";
+  search?: string;
+  status?: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+}
+
 export interface Building {
   id: string;
   name: string;

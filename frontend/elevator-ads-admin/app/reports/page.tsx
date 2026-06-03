@@ -5,14 +5,16 @@ import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { PaginationControls } from "@/components/PaginationControls";
 import { SummaryCard } from "@/components/SummaryCard";
 import {
-  getProofOfPlayEvents,
+  getProofOfPlayEventsPaged,
   getReportsCampaigns,
   getReportsOverview,
   getReportsScreens,
 } from "@/lib/api";
 import { useApiData } from "@/lib/api/useApiData";
+import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
 import type {
   CampaignReport,
@@ -63,12 +65,11 @@ export default function ReportsPage() {
     () => getReportsScreens(appliedFrom, appliedTo),
     [appliedFrom, appliedTo],
   );
-  const proofOfPlayFetcher = useCallback(() => getProofOfPlayEvents(), []);
 
   const overviewState = useApiData<OverviewReport>(overviewFetcher);
   const campaignState = useApiData<CampaignReport>(campaignFetcher);
   const screenState = useApiData<ScreenReport>(screenFetcher);
-  const proofOfPlayState = useApiData<ProofOfPlayEvent[]>(proofOfPlayFetcher);
+  const proofOfPlayState = usePagedData(getProofOfPlayEventsPaged, "reports-proof-of-play");
 
   const handleApply = (event: React.FormEvent) => {
     event.preventDefault();
@@ -299,16 +300,26 @@ export default function ReportsPage() {
 
       <section className="space-y-4">
         {sectionTitle(labels.proofOfPlayEvents)}
-        {proofOfPlayState.status === "loading" ? <LoadingState /> : null}
-        {proofOfPlayState.status === "error" ? (
-          <ErrorState message={proofOfPlayState.message} onRetry={proofOfPlayState.retry} />
+        {proofOfPlayState.state.status === "loading" ? <LoadingState /> : null}
+        {proofOfPlayState.state.status === "error" ? (
+          <ErrorState message={proofOfPlayState.state.message} onRetry={proofOfPlayState.state.retry} />
         ) : null}
-        {proofOfPlayState.status === "ok" ? (
-          <DataTable
-            columns={proofOfPlayColumns}
-            rows={proofOfPlayState.data}
-            getRowKey={(row) => row.id}
-          />
+        {proofOfPlayState.state.status === "ok" ? (
+          <>
+            <DataTable
+              columns={proofOfPlayColumns}
+              rows={proofOfPlayState.state.data.items}
+              getRowKey={(row) => row.id}
+            />
+            <PaginationControls
+              page={proofOfPlayState.state.data.page}
+              totalPages={proofOfPlayState.state.data.totalPages}
+              totalItems={proofOfPlayState.state.data.totalItems}
+              pageSize={proofOfPlayState.state.data.pageSize}
+              onPageChange={proofOfPlayState.setPage}
+              onPageSizeChange={proofOfPlayState.setPageSize}
+            />
+          </>
         ) : null}
       </section>
     </ClientPageFrame>

@@ -1,3 +1,5 @@
+import type { PagedQuery, PagedResult } from "@/lib/types";
+
 export interface ApiError {
   status: number;
   message: string;
@@ -32,6 +34,37 @@ export async function apiFetch<T>(path: string): Promise<ApiResult<T>> {
       message: error instanceof Error ? error.message : "Unable to reach the API.",
     };
   }
+}
+
+export async function apiFetchPaged<T>(
+  path: string,
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<T>>> {
+  const searchParams = new URLSearchParams();
+
+  searchParams.set("page", String(query.page));
+  searchParams.set("pageSize", String(query.pageSize));
+
+  if (query.sortBy) {
+    searchParams.set("sortBy", query.sortBy);
+  }
+
+  if (query.sortDirection) {
+    searchParams.set("sortDirection", query.sortDirection);
+  }
+
+  if (query.search) {
+    searchParams.set("search", query.search);
+  }
+
+  if (query.status) {
+    searchParams.set("status", query.status);
+  }
+
+  const queryString = searchParams.toString();
+  const requestPath = queryString ? `${path}?${queryString}` : path;
+
+  return apiFetch<PagedResult<T>>(requestPath);
 }
 
 export async function apiMutate<TBody, TResponse>(

@@ -5,12 +5,14 @@ import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
+import { PaginationControls } from "@/components/PaginationControls";
 import { PlaylistDetailPanel } from "@/components/PlaylistDetailPanel";
 import { StatusBadge } from "@/components/StatusBadge";
-import { generatePlaylists, getDailyPlaylists, publishPlaylist } from "@/lib/api";
-import { useApiData } from "@/lib/api/useApiData";
+import { TableFilters } from "@/components/TableFilters";
+import { generatePlaylists, getDailyPlaylistById, getDailyPlaylistsPaged, publishPlaylist } from "@/lib/api";
+import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
-import type { DailyPlaylist } from "@/lib/types";
+import type { ApiDailyPlaylist, DailyPlaylist } from "@/lib/types";
 
 type Feedback =
   | { kind: "success"; message: string }
@@ -25,7 +27,7 @@ export default function PlaylistsPage() {
   const { dictionary } = useTranslation();
   const labels = dictionary.pages.playlists;
 
-  const state = useApiData<DailyPlaylist[]>(getDailyPlaylists);
+  const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getDailyPlaylistsPaged, "playlists");
 
   const [selectedDate, setSelectedDate] = useState<string>(todayIsoDate);
   const [generating, setGenerating] = useState(false);
@@ -33,8 +35,15 @@ export default function PlaylistsPage() {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [detailPlaylist, setDetailPlaylist] = useState<DailyPlaylist | null>(null);
 
-  const openDetail = (playlist: DailyPlaylist) => {
-    setDetailPlaylist(playlist);
+  const openDetail = async (playlist: ApiDailyPlaylist) => {
+    const result = await getDailyPlaylistById(playlist.id);
+
+    if (!result.ok) {
+      setFeedback({ kind: "error", message: result.message || labels.publishError });
+      return;
+    }
+
+    setDetailPlaylist(result.data);
   };
 
   const closeDetail = () => {
@@ -76,7 +85,7 @@ export default function PlaylistsPage() {
     state.retry();
   };
 
-  const handlePublish = async (playlist: DailyPlaylist) => {
+  const handlePublish = async (playlist: ApiDailyPlaylist) => {
     if (playlist.status !== "Draft" || publishingId) {
       return;
     }
@@ -103,11 +112,10 @@ export default function PlaylistsPage() {
     state.retry();
   };
 
-  const columns: TableColumn<DailyPlaylist>[] = [
+  const columns: TableColumn<ApiDailyPlaylist>[] = [
     { key: "date", header: labels.columnDate, render: (row) => <span className="font-mono text-xs">{row.date}</span> },
-    { key: "screen", header: labels.columnScreen, render: (row) => <span className="font-semibold">{row.screenName}</span> },
-    { key: "building", header: labels.columnBuilding, render: (row) => row.buildingName },
-    { key: "version", header: labels.columnVersion, render: (row) => <span className="font-mono text-xs">{row.version}</span> },
+    { key: "screen", header: labels.columnScreen, render: (row) => <span className="font-mono text-xs">{row.screenId}</span> },
+    { key: "version", header: labels.columnVersion, render: (row) => <span className="font-mono text-xs">v{row.version}</span> },
     { key: "status", header: labels.columnStatus, render: (row) => <StatusBadge status={row.status} /> },
     { key: "items", header: labels.columnItems, render: (row) => row.items.length },
     {
@@ -119,11 +127,6 @@ export default function PlaylistsPage() {
       key: "publishedAt",
       header: labels.columnPublishedAt,
       render: (row) => <span className="font-mono text-xs">{row.publishedAt ?? "-"}</span>,
-    },
-    {
-      key: "downloadedAt",
-      header: labels.columnDownloadedAt,
-      render: (row) => <span className="font-mono text-xs">{row.downloadedAt ?? "-"}</span>,
     },
     {
       key: "actions",
@@ -189,6 +192,19 @@ export default function PlaylistsPage() {
         </button>
       </form>
 
+      <TableFilters
+        search={query.search ?? ""}
+        onSearchChange={setSearch}
+        status={query.status}
+        onStatusChange={setStatus}
+        statusOptions={[
+          { value: "Draft", label: "Draft" },
+          { value: "Published", label: "Published" },
+          { value: "Downloaded", label: "Downloaded" },
+          { value: "Expired", label: "Expired" },
+        ]}
+      />
+
       {feedback ? (
         <div
           role={feedback.kind === "error" ? "alert" : "status"}
@@ -206,7 +222,19 @@ export default function PlaylistsPage() {
 
       {state.status === "loading" ? <LoadingState /> : null}
       {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
-      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
+      {state.status === "ok" ? (
+        <>
+          <DataTable columns={columns} rows={state.data.items} getRowKey={(row) => row.id} />
+          <PaginationControls
+            page={state.data.page}
+            totalPages={state.data.totalPages}
+            totalItems={state.data.totalItems}
+            pageSize={state.data.pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
+      ) : null}
 
       {detailPlaylist ? (
         <PlaylistDetailPanel

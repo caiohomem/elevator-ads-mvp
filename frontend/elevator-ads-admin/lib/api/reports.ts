@@ -1,8 +1,10 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiFetchPaged, type ApiResult } from "@/lib/api/client";
 import type {
   CampaignReport,
   OverviewReport,
   ProofOfPlayEvent,
+  PagedQuery,
+  PagedResult,
   ScreenReport,
 } from "@/lib/types";
 
@@ -33,4 +35,10 @@ export async function getReportsScreens(
 
 export async function getProofOfPlayEvents(): Promise<ApiResult<ProofOfPlayEvent[]>> {
   return apiFetch<ProofOfPlayEvent[]>(`${playbackReportsEndpoint}/`);
+}
+
+export async function getProofOfPlayEventsPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ProofOfPlayEvent>>> {
+  return apiFetchPaged<ProofOfPlayEvent>(`${playbackReportsEndpoint}/`, query);
 }

@@ -34,6 +34,18 @@ export interface TranslationDictionary {
     currentLanguage: string;
     updatedForMvp: string;
   };
+  pagination: {
+    showing: string;
+    of: string;
+    prev: string;
+    next: string;
+    pageSize: string;
+  };
+  filters: {
+    search: string;
+    status: string;
+    all: string;
+  };
   dashboard: {
     title: string;
     description: string;
@@ -260,6 +272,18 @@ export const en: TranslationDictionary = {
     currentTheme: "Current theme",
     currentLanguage: "Current language",
     updatedForMvp: "Prepared for MVP daily playlist delivery",
+  },
+  pagination: {
+    showing: "Showing",
+    of: "of",
+    prev: "Previous",
+    next: "Next",
+    pageSize: "Page size",
+  },
+  filters: {
+    search: "Search",
+    status: "Status",
+    all: "All",
   },
   dashboard: {
     title: "Operations dashboard",

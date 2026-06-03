@@ -1,5 +1,12 @@
-import { apiDelete, apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
-import type { ApiAdvertiser, ApiCampaign, Campaign, CampaignStatus } from "@/lib/types";
+import { apiDelete, apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import type {
+  ApiAdvertiser,
+  ApiCampaign,
+  Campaign,
+  CampaignStatus,
+  PagedQuery,
+  PagedResult,
+} from "@/lib/types";
 
 const campaignsEndpoint = "/api/campaigns";
 const advertisersEndpoint = "/api/advertisers";
@@ -86,6 +93,12 @@ export async function updateCampaign(
 
 export async function getCampaignsList(): Promise<ApiResult<ApiCampaign[]>> {
   return apiFetch<ApiCampaign[]>(campaignsEndpoint);
+}
+
+export async function getCampaignsPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiCampaign>>> {
+  return apiFetchPaged<ApiCampaign>(campaignsEndpoint, query);
 }
 
 export async function getCampaignCreatives(
