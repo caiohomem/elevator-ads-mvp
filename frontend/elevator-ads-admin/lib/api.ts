@@ -7,7 +7,15 @@ export {
   updateAdvertiser,
 } from "@/lib/api/advertisers";
 export { createBuilding, getBuildings, getBuildingsList, updateBuilding } from "@/lib/api/buildings";
-export { getCampaigns } from "@/lib/api/campaigns";
+export {
+  assignCreative,
+  createCampaign,
+  getCampaignCreatives,
+  getCampaigns,
+  getCampaignsList,
+  removeCreative,
+  updateCampaign,
+} from "@/lib/api/campaigns";
 export {
   approveCreative,
   createCreative,
