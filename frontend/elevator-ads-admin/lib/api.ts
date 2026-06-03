@@ -27,7 +27,13 @@ export {
   submitCreativeForReview,
   updateCreative,
 } from "@/lib/api/creatives";
-export { getDailyPlaylists } from "@/lib/api/playlists";
+export {
+  generatePlaylists,
+  getDailyPlaylistById,
+  getDailyPlaylists,
+  getDailyPlaylistsList,
+  publishPlaylist,
+} from "@/lib/api/playlists";
 export { createScreen, getScreens, getScreensList, updateScreen } from "@/lib/api/screens";
 
 const withLatency = async <T>(data: T): Promise<T> => Promise.resolve(data);

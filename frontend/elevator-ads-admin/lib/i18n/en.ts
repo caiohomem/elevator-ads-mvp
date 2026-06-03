@@ -54,7 +54,51 @@ export interface TranslationDictionary {
     advertisers: { title: string; description: string };
     creatives: { title: string; description: string };
     campaigns: { title: string; description: string };
-    playlists: { title: string; description: string; note: string };
+    playlists: {
+      title: string;
+      description: string;
+      note: string;
+      selectDate: string;
+      generate: string;
+      generating: string;
+      generateSuccess: string;
+      generateEmpty: string;
+      generateError: string;
+      viewDetails: string;
+      publish: string;
+      publishing: string;
+      publishSuccess: string;
+      publishError: string;
+      publishedNote: string;
+      columnDate: string;
+      columnScreen: string;
+      columnBuilding: string;
+      columnVersion: string;
+      columnStatus: string;
+      columnItems: string;
+      columnGeneratedAt: string;
+      columnPublishedAt: string;
+      columnDownloadedAt: string;
+      itemOrder: string;
+      itemCampaign: string;
+      itemCreative: string;
+      itemMediaType: string;
+      itemDuration: string;
+      detailScreen: string;
+      detailBuilding: string;
+      detailDate: string;
+      detailVersion: string;
+      detailStatus: string;
+      detailGeneratedAt: string;
+      detailPublishedAt: string;
+      detailItems: string;
+      status: {
+        draft: string;
+        published: string;
+        downloaded: string;
+        expired: string;
+      };
+    };
     reports: { title: string; description: string };
     settings: { title: string; description: string };
   };
@@ -239,6 +283,47 @@ export const en: TranslationDictionary = {
       title: "Daily playlists",
       description: "Published sequences distributed to elevator screens each day.",
       note: "Elevator screens download a published daily playlist and repeat the programmed sequence throughout the day.",
+      selectDate: "Playlist date",
+      generate: "Generate playlists",
+      generating: "Generating...",
+      generateSuccess: "Daily playlists generated for the selected date.",
+      generateEmpty: "No active campaigns produced a playlist for this date.",
+      generateError: "Unable to generate playlists.",
+      viewDetails: "View",
+      publish: "Publish",
+      publishing: "Publishing...",
+      publishSuccess: "Playlist published and queued for elevator screens.",
+      publishError: "Unable to publish playlist.",
+      publishedNote:
+        "Published playlists are downloaded by elevator screens and are not exposed to the player UI as drafts.",
+      columnDate: "Date",
+      columnScreen: "Screen",
+      columnBuilding: "Building",
+      columnVersion: "Version",
+      columnStatus: "Status",
+      columnItems: "Items",
+      columnGeneratedAt: "Generated at",
+      columnPublishedAt: "Published at",
+      columnDownloadedAt: "Downloaded at",
+      itemOrder: "Order",
+      itemCampaign: "Campaign",
+      itemCreative: "Creative",
+      itemMediaType: "Media type",
+      itemDuration: "Duration (s)",
+      detailScreen: "Screen",
+      detailBuilding: "Building",
+      detailDate: "Date",
+      detailVersion: "Version",
+      detailStatus: "Status",
+      detailGeneratedAt: "Generated at",
+      detailPublishedAt: "Published at",
+      detailItems: "Items",
+      status: {
+        draft: "Draft playlists are only visible in the admin and are not yet available to players.",
+        published: "Published playlists have been made available to elevator screens for download.",
+        downloaded: "At least one elevator screen has already downloaded this playlist.",
+        expired: "This playlist is no longer the active program for the day.",
+      },
     },
     reports: {
       title: "Reports",

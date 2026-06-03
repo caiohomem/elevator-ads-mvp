@@ -214,8 +214,8 @@ export const dailyPlaylists: DailyPlaylist[] = [
     version: "v3",
     status: "Downloaded",
     items: [
-      { id: "pli-001", creativeName: "Summer Membership Loop", position: 1, durationSeconds: 15 },
-      { id: "pli-002", creativeName: "Fresh Market Reminder", position: 2, durationSeconds: 10 },
+      { id: "pli-001", creativeName: "Summer Membership Loop", campaignName: "Atlas Morning Awareness", mediaType: "Video", position: 1, durationSeconds: 15 },
+      { id: "pli-002", creativeName: "Fresh Market Reminder", campaignName: "Nova Lunch Push", mediaType: "Image", position: 2, durationSeconds: 10 },
     ],
     generatedAt: "2026-05-23 23:40",
     publishedAt: "2026-05-23 23:55",
@@ -230,8 +230,8 @@ export const dailyPlaylists: DailyPlaylist[] = [
     version: "v2",
     status: "Published",
     items: [
-      { id: "pli-003", creativeName: "Fresh Market Reminder", position: 1, durationSeconds: 10 },
-      { id: "pli-004", creativeName: "Summer Membership Loop", position: 2, durationSeconds: 15 },
+      { id: "pli-003", creativeName: "Fresh Market Reminder", campaignName: "Nova Lunch Push", mediaType: "Image", position: 1, durationSeconds: 10 },
+      { id: "pli-004", creativeName: "Summer Membership Loop", campaignName: "Atlas Morning Awareness", mediaType: "Video", position: 2, durationSeconds: 15 },
     ],
     generatedAt: "2026-05-23 23:42",
     publishedAt: "2026-05-23 23:57",
@@ -246,7 +246,7 @@ export const dailyPlaylists: DailyPlaylist[] = [
     version: "v1",
     status: "Draft",
     items: [
-      { id: "pli-005", creativeName: "Premium Residences Tour", position: 1, durationSeconds: 12 },
+      { id: "pli-005", creativeName: "Premium Residences Tour", campaignName: "Lumen Investor Showcase", mediaType: "HTML5", position: 1, durationSeconds: 12 },
     ],
     generatedAt: "2026-05-23 23:45",
     publishedAt: null,
@@ -261,8 +261,8 @@ export const dailyPlaylists: DailyPlaylist[] = [
     version: "v4",
     status: "Expired",
     items: [
-      { id: "pli-006", creativeName: "Summer Membership Loop", position: 1, durationSeconds: 15 },
-      { id: "pli-007", creativeName: "Premium Residences Tour", position: 2, durationSeconds: 12 },
+      { id: "pli-006", creativeName: "Summer Membership Loop", campaignName: "Atlas Morning Awareness", mediaType: "Video", position: 1, durationSeconds: 15 },
+      { id: "pli-007", creativeName: "Premium Residences Tour", campaignName: "Lumen Investor Showcase", mediaType: "HTML5", position: 2, durationSeconds: 12 },
     ],
     generatedAt: "2026-05-22 23:30",
     publishedAt: "2026-05-22 23:48",
