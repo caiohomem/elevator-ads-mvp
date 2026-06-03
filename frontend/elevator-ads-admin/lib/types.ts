@@ -214,3 +214,46 @@ export interface ApiDailyPlaylist {
   updatedAt: string;
   items: ApiDailyPlaylistItem[];
 }
+
+export interface GroupSummary {
+  id: string;
+  plays: number;
+  playedSeconds: number;
+}
+
+export interface OverviewReport {
+  date: string;
+  totalPlays: number;
+  totalPlayedSeconds: number;
+  byCampaign: GroupSummary[];
+  byScreen: GroupSummary[];
+  byCreative: GroupSummary[];
+}
+
+export interface CampaignReport {
+  from: string;
+  to: string;
+  totalPlays: number;
+  totalPlayedSeconds: number;
+  campaigns: GroupSummary[];
+}
+
+export interface ScreenReport {
+  from: string;
+  to: string;
+  totalPlays: number;
+  totalPlayedSeconds: number;
+  screens: GroupSummary[];
+}
+
+export interface ProofOfPlayEvent {
+  id: string;
+  screenId: string;
+  playlistId: string;
+  playlistItemId: string;
+  campaignId: string;
+  creativeId: string;
+  playedAt: string;
+  durationSeconds: number;
+  createdAt: string;
+}

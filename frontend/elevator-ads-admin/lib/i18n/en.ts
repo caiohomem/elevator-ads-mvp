@@ -106,7 +106,25 @@ export interface TranslationDictionary {
     playsToday: string;
     playsByCampaign: string;
     playsByScreen: string;
+    playsByCreative: string;
     pendingProofOfPlay: string;
+    totalPlays: string;
+    totalPlayedSeconds: string;
+    dateFrom: string;
+    dateTo: string;
+    applyFilter: string;
+    overviewSummary: string;
+    overviewDate: string;
+    campaignDeliverySummary: string;
+    screenDeliverySummary: string;
+    proofOfPlayEvents: string;
+    campaignId: string;
+    screenId: string;
+    creativeId: string;
+    playedAt: string;
+    playedSeconds: string;
+    plays: string;
+    rangeLabel: string;
   };
   settings: {
     themePreference: string;
@@ -338,7 +356,25 @@ export const en: TranslationDictionary = {
     playsToday: "Plays today",
     playsByCampaign: "Plays by campaign",
     playsByScreen: "Plays by screen",
+    playsByCreative: "Plays by creative",
     pendingProofOfPlay: "Pending proof-of-play",
+    totalPlays: "Total plays",
+    totalPlayedSeconds: "Total played seconds",
+    dateFrom: "From",
+    dateTo: "To",
+    applyFilter: "Apply",
+    overviewSummary: "Daily overview",
+    overviewDate: "Overview date",
+    campaignDeliverySummary: "Campaign delivery summary",
+    screenDeliverySummary: "Screen delivery summary",
+    proofOfPlayEvents: "Proof-of-play events",
+    campaignId: "Campaign",
+    screenId: "Screen",
+    creativeId: "Creative",
+    playedAt: "Played at",
+    playedSeconds: "Played seconds",
+    plays: "Plays",
+    rangeLabel: "Range",
   },
   settings: {
     themePreference: "Theme preference",
