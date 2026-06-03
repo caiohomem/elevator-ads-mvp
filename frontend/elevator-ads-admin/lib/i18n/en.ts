@@ -70,6 +70,38 @@ export interface TranslationDictionary {
     environmentInfo: string;
     environmentDescription: string;
   };
+  forms: {
+    newBuilding: string;
+    editBuilding: string;
+    newScreen: string;
+    editScreen: string;
+    save: string;
+    cancel: string;
+    saving: string;
+    saved: string;
+    saveFailed: string;
+    fieldRequired: string;
+    mustBePositive: string;
+    mustBeGreaterThanZero: string;
+    edit: string;
+    building: {
+      name: string;
+      city: string;
+      country: string;
+      type: string;
+      audience: string;
+      address: string;
+      postalCode: string;
+    };
+    screen: {
+      name: string;
+      buildingId: string;
+      resolutionWidth: string;
+      resolutionHeight: string;
+      orientation: string;
+      externalCode: string;
+    };
+  };
 }
 
 export const en: TranslationDictionary = {
@@ -170,5 +202,37 @@ export const en: TranslationDictionary = {
     environmentInfo: "Environment information",
     environmentDescription:
       "Set NEXT_PUBLIC_API_BASE_URL to connect the admin frontend to the backend API.",
+  },
+  forms: {
+    newBuilding: "New building",
+    editBuilding: "Edit building",
+    newScreen: "New screen",
+    editScreen: "Edit screen",
+    save: "Save",
+    cancel: "Cancel",
+    saving: "Saving...",
+    saved: "Saved",
+    saveFailed: "Save failed",
+    fieldRequired: "This field is required.",
+    mustBePositive: "Value cannot be negative.",
+    mustBeGreaterThanZero: "Value must be greater than zero.",
+    edit: "Edit",
+    building: {
+      name: "Name",
+      city: "City",
+      country: "Country",
+      type: "Type",
+      audience: "Estimated daily audience",
+      address: "Address",
+      postalCode: "Postal code",
+    },
+    screen: {
+      name: "Name",
+      buildingId: "Building",
+      resolutionWidth: "Resolution width (px)",
+      resolutionHeight: "Resolution height (px)",
+      orientation: "Orientation",
+      externalCode: "External code",
+    },
   },
 };
