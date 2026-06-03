@@ -35,4 +35,12 @@ public sealed class InMemoryProofOfPlayEventRepository : IProofOfPlayEventReposi
                 .OrderByDescending(item => item.PlayedAt)
                 .ThenByDescending(item => item.CreatedAt)
                 .ToList());
+
+    public Task<IEnumerable<ProofOfPlayEvent>> GetByDateRangeAsync(DateTime from, DateTime to) =>
+        Task.FromResult<IEnumerable<ProofOfPlayEvent>>(
+            _events.Values
+                .Where(item => item.PlayedAt >= from && item.PlayedAt < to)
+                .OrderByDescending(item => item.PlayedAt)
+                .ThenByDescending(item => item.CreatedAt)
+                .ToList());
 }

@@ -6,6 +6,7 @@ using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
+using ElevatorAds.Application.DeliveryReports;
 using ElevatorAds.Application.PlaybackReports;
 using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Application.Playlists;
@@ -73,6 +74,7 @@ builder.Services.AddSingleton<PlaylistGenerationService>();
 builder.Services.AddSingleton<PlaylistDownloadService>();
 builder.Services.AddSingleton<IProofOfPlayEventRepository, InMemoryProofOfPlayEventRepository>();
 builder.Services.AddSingleton<ProofOfPlayService>();
+builder.Services.AddSingleton<DeliveryReportService>();
 
 var app = builder.Build();
 
@@ -415,6 +417,48 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
 var playbackReports = app.MapGroup("/api/playback-reports");
 
 playbackReports.MapGet("/", async (ProofOfPlayService service) => Results.Ok(await service.GetAllAsync()));
+
+var reports = app.MapGroup("/api/reports");
+
+reports.MapGet("/overview", async (string? date, DeliveryReportService service) =>
+{
+    if (!TryParseDate(date, out var parsedDate))
+    {
+        return Results.UnprocessableEntity(new { error = "Date is required." });
+    }
+
+    return Results.Ok(await service.GetOverviewAsync(parsedDate));
+});
+
+reports.MapGet("/campaigns", async (string? from, string? to, DeliveryReportService service) =>
+{
+    if (!TryParseDate(from, out var fromDate) || !TryParseDate(to, out var toDate))
+    {
+        return Results.UnprocessableEntity(new { error = "From and To dates are required." });
+    }
+
+    if (toDate < fromDate)
+    {
+        return Results.UnprocessableEntity(new { error = "To must be greater than or equal to From." });
+    }
+
+    return Results.Ok(await service.GetCampaignsAsync(fromDate, toDate));
+});
+
+reports.MapGet("/screens", async (string? from, string? to, DeliveryReportService service) =>
+{
+    if (!TryParseDate(from, out var fromDate) || !TryParseDate(to, out var toDate))
+    {
+        return Results.UnprocessableEntity(new { error = "From and To dates are required." });
+    }
+
+    if (toDate < fromDate)
+    {
+        return Results.UnprocessableEntity(new { error = "To must be greater than or equal to From." });
+    }
+
+    return Results.Ok(await service.GetScreensAsync(fromDate, toDate));
+});
 
 static bool TryParseDate(string? value, out DateOnly date) =>
     DateOnly.TryParseExact(value, "yyyy-MM-dd", out date);
