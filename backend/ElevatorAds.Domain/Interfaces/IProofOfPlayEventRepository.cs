@@ -8,4 +8,5 @@ public interface IProofOfPlayEventRepository
     Task<ProofOfPlayEvent> AddAsync(ProofOfPlayEvent proofOfPlay);
     Task<IEnumerable<ProofOfPlayEvent>> GetByScreenIdAsync(Guid screenId);
     Task<IEnumerable<ProofOfPlayEvent>> GetByCampaignIdAsync(Guid campaignId);
+    Task<IEnumerable<ProofOfPlayEvent>> GetByDateRangeAsync(DateTime from, DateTime to);
 }
