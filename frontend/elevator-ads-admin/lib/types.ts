@@ -176,6 +176,30 @@ export interface ApiDailyPlaylistItem {
   createdAt: string;
 }
 
+export type DeliveryBuildingType = "Residential" | "Corporate" | "Commercial" | "MixedUse" | "Other";
+export type DeliveryScreenOrientation = "Landscape" | "Portrait";
+export type DeliveryDayOfWeek = "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
+
+export const DELIVERY_BUILDING_TYPES: readonly DeliveryBuildingType[] = [
+  "Residential",
+  "Corporate",
+  "Commercial",
+  "MixedUse",
+  "Other",
+] as const;
+
+export const DELIVERY_SCREEN_ORIENTATIONS: readonly DeliveryScreenOrientation[] = ["Landscape", "Portrait"] as const;
+
+export const DELIVERY_DAYS_OF_WEEK: readonly DeliveryDayOfWeek[] = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
 export interface ApiDailyPlaylist {
   id: string;
   screenId: string;

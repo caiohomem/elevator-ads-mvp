@@ -101,6 +101,22 @@ export interface TranslationDictionary {
     mustBeGreaterThanZero: string;
     actionFailed: string;
     edit: string;
+    deliveryConstraints: {
+      title: string;
+      edit: string;
+      save: string;
+      cities: string;
+      citiesHelp: string;
+      buildingTypes: string;
+      screenOrientations: string;
+      daysOfWeek: string;
+      startTime: string;
+      endTime: string;
+      timeHelp: string;
+      emptyNote: string;
+      loadFailed: string;
+      startBeforeEnd: string;
+    };
     building: {
       name: string;
       city: string;
@@ -277,6 +293,22 @@ export const en: TranslationDictionary = {
     mustBeGreaterThanZero: "Value must be greater than zero.",
     actionFailed: "Action failed",
     edit: "Edit",
+    deliveryConstraints: {
+      title: "Delivery constraints",
+      edit: "Edit constraints",
+      save: "Save constraints",
+      cities: "Cities",
+      citiesHelp: "Comma-separated list. Leave empty to allow all cities.",
+      buildingTypes: "Building types",
+      screenOrientations: "Screen orientations",
+      daysOfWeek: "Days of week",
+      startTime: "Start time",
+      endTime: "End time",
+      timeHelp: "Leave both empty to allow all hours.",
+      emptyNote: "Empty constraints mean all values are allowed.",
+      loadFailed: "Unable to load delivery constraints.",
+      startBeforeEnd: "Start time must be before end time.",
+    },
     building: {
       name: "Name",
       city: "City",
