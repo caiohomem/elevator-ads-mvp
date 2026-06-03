@@ -1,9 +1,32 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
 import type { ApiBuilding, ApiDailyPlaylist, ApiScreen, Screen, ScreenStatus } from "@/lib/types";
 
 const screensEndpoint = "/api/screens";
 const buildingsEndpoint = "/api/buildings";
 const playlistsEndpoint = "/api/playlists";
+
+export type CreateScreenPayload = {
+  buildingId: string;
+  name: string;
+  externalCode: string;
+  resolutionWidth: number;
+  resolutionHeight: number;
+  orientation: string;
+  status: string;
+};
+
+export async function createScreen(
+  payload: CreateScreenPayload,
+): Promise<ApiResult<ApiScreen>> {
+  return apiMutate<CreateScreenPayload, ApiScreen>(screensEndpoint, "POST", payload);
+}
+
+export async function updateScreen(
+  id: string,
+  payload: CreateScreenPayload,
+): Promise<ApiResult<ApiScreen>> {
+  return apiMutate<CreateScreenPayload, ApiScreen>(`${screensEndpoint}/${id}`, "PUT", payload);
+}
 
 export async function getScreens(): Promise<ApiResult<Screen[]>> {
   const [screensResult, buildingsResult, playlistsResult] = await Promise.all([
@@ -39,6 +62,10 @@ export async function getScreens(): Promise<ApiResult<Screen[]>> {
     ok: true,
     data: screensResult.data.map((screen) => mapScreen(screen, buildingsById, latestPlaylistByScreenId)),
   };
+}
+
+export async function getScreensList(): Promise<ApiResult<ApiScreen[]>> {
+  return apiFetch<ApiScreen[]>(screensEndpoint);
 }
 
 function mapScreen(

@@ -1,8 +1,31 @@
-import { apiFetch, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiMutate, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
 import type { ApiBuilding, ApiScreen, Building, BuildingType } from "@/lib/types";
 
 const buildingsEndpoint = "/api/buildings";
 const screensEndpoint = "/api/screens";
+
+export type CreateBuildingPayload = {
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  postalCode: string;
+  buildingType: string;
+  estimatedDailyAudience: number;
+};
+
+export async function createBuilding(
+  payload: CreateBuildingPayload,
+): Promise<ApiResult<ApiBuilding>> {
+  return apiMutate<CreateBuildingPayload, ApiBuilding>(buildingsEndpoint, "POST", payload);
+}
+
+export async function updateBuilding(
+  id: string,
+  payload: CreateBuildingPayload,
+): Promise<ApiResult<ApiBuilding>> {
+  return apiMutate<CreateBuildingPayload, ApiBuilding>(`${buildingsEndpoint}/${id}`, "PUT", payload);
+}
 
 export async function getBuildings(): Promise<ApiResult<Building[]>> {
   const [buildingsResult, screensResult] = await Promise.all([
@@ -39,6 +62,10 @@ export async function getBuildings(): Promise<ApiResult<Building[]>> {
     ok: true,
     data: buildingsResult.data.map((building) => mapBuilding(building, screenCounts, hasActiveScreens)),
   };
+}
+
+export async function getBuildingsList(): Promise<ApiResult<ApiBuilding[]>> {
+  return apiFetch<ApiBuilding[]>(buildingsEndpoint);
 }
 
 function mapBuilding(

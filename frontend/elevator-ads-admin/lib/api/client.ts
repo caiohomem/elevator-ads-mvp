@@ -34,6 +34,41 @@ export async function apiFetch<T>(path: string): Promise<ApiResult<T>> {
   }
 }
 
+export async function apiMutate<TBody, TResponse>(
+  path: string,
+  method: "POST" | "PUT",
+  body: TBody,
+): Promise<ApiResult<TResponse>> {
+  const requestUrl = buildRequestUrl(path);
+
+  try {
+    const response = await fetch(requestUrl, {
+      method,
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        message: await readErrorMessage(response),
+      };
+    }
+
+    return { ok: true, data: (await response.json()) as TResponse };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      message: error instanceof Error ? error.message : "Unable to reach the API.",
+    };
+  }
+}
+
 async function readErrorMessage(response: Response) {
   const contentType = response.headers.get("content-type") ?? "";
 
