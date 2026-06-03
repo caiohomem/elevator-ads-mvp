@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Creatives;
 
-public class CreativeEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public CreativeEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public CreativeEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task PostCreative_CreatesCreative()

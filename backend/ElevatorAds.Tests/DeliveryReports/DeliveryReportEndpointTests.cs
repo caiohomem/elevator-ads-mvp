@@ -1,3 +1,4 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using ElevatorAds.Domain.Entities;
@@ -7,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ElevatorAds.Tests.DeliveryReports;
 
-public class DeliveryReportEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public DeliveryReportEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public DeliveryReportEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task GetOverview_NoData_ReturnsZeroTotalsAndEmptyGroups()

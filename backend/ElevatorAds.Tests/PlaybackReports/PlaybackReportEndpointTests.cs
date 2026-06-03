@@ -1,3 +1,4 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using ElevatorAds.Domain.Interfaces;
@@ -6,11 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ElevatorAds.Tests.PlaybackReports;
 
-public class PlaybackReportEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public PlaybackReportEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public PlaybackReportEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task SubmitPlaybackReport_ReturnsCreatedWithResolvedIds()

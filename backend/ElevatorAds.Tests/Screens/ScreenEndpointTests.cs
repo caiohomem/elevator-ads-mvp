@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Screens;
 
-public class ScreenEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public ScreenEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public ScreenEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task PostScreen_CreatesScreen()

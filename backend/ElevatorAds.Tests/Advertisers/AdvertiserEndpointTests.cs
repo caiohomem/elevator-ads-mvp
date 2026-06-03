@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Advertisers;
 
-public class AdvertiserEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public AdvertiserEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public AdvertiserEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task PostAdvertiser_CreatesAdvertiser()

@@ -1,3 +1,4 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using ElevatorAds.Domain.Entities;
@@ -7,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ElevatorAds.Tests.Playlists;
 
-public class PlaylistDownloadEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public PlaylistDownloadEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public PlaylistDownloadEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task GetCurrentPlaylist_ReturnsPublishedPlaylist()
