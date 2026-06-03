@@ -1,7 +1,9 @@
-import { apiFetch, type ApiResource, withMockFallback } from "@/lib/api/client";
+import { apiFetch, apiMutate, type ApiResource, type ApiResult, withMockFallback } from "@/lib/api/client";
+import { getCampaignsList } from "@/lib/api/campaigns";
 import { dailyPlaylists as mockPlaylists } from "@/lib/mockData";
 import type {
   ApiBuilding,
+  ApiCampaign,
   ApiCreative,
   ApiDailyPlaylist,
   ApiDailyPlaylistItem,
@@ -16,53 +18,84 @@ const screensEndpoint = "/api/screens";
 const buildingsEndpoint = "/api/buildings";
 const creativesEndpoint = "/api/creatives";
 
+type PlaylistLookups = {
+  screenNamesById: Map<string, string>;
+  buildingIdByScreenId: Map<string, string>;
+  buildingNamesById: Map<string, string>;
+  creativeNamesById: Map<string, string>;
+  creativeMediaTypesById: Map<string, string>;
+  campaignNamesById: Map<string, string>;
+};
+
 export async function getDailyPlaylists(): Promise<ApiResource<DailyPlaylist[]>> {
-  const [playlistsResult, screensResult, buildingsResult, creativesResult] = await Promise.all([
-    apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint),
-    apiFetch<ApiScreen[]>(screensEndpoint),
-    apiFetch<ApiBuilding[]>(buildingsEndpoint),
-    apiFetch<ApiCreative[]>(creativesEndpoint),
-  ]);
+  const [playlistsResult, lookupsResult] = await Promise.all([apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint), loadLookups()]);
 
   if (!playlistsResult.ok) {
     return withMockFallback(playlistsEndpoint, playlistsResult, mockPlaylists);
   }
 
-  if (!screensResult.ok) {
-    return withMockFallback(screensEndpoint, screensResult, mockPlaylists);
-  }
-
-  if (!buildingsResult.ok) {
-    return withMockFallback(buildingsEndpoint, buildingsResult, mockPlaylists);
-  }
-
-  if (!creativesResult.ok) {
-    return withMockFallback(creativesEndpoint, creativesResult, mockPlaylists);
-  }
-
-  const screenNamesById = new Map(screensResult.data.map((screen) => [screen.id, screen.name] as const));
-  const buildingIdByScreenId = new Map(screensResult.data.map((screen) => [screen.id, screen.buildingId] as const));
-  const buildingNamesById = new Map(buildingsResult.data.map((building) => [building.id, building.name] as const));
-  const creativeNamesById = new Map(creativesResult.data.map((creative) => [creative.id, creative.name] as const));
-
   return {
     ok: true,
-    data: playlistsResult.data.map((playlist) =>
-      mapPlaylist(playlist, screenNamesById, buildingIdByScreenId, buildingNamesById, creativeNamesById),
-    ),
+    data: playlistsResult.data.map((playlist) => mapPlaylist(playlist, lookupsResult)),
   };
 }
 
-function mapPlaylist(
-  playlist: ApiDailyPlaylist,
-  screenNamesById: Map<string, string>,
-  buildingIdByScreenId: Map<string, string>,
-  buildingNamesById: Map<string, string>,
-  creativeNamesById: Map<string, string>,
-): DailyPlaylist {
-  const screenName = screenNamesById.get(playlist.screenId) ?? playlist.screenId;
-  const buildingId = buildingIdByScreenId.get(playlist.screenId);
-  const buildingName = buildingId ? (buildingNamesById.get(buildingId) ?? buildingId) : "-";
+export async function getDailyPlaylistsList(): Promise<ApiResult<ApiDailyPlaylist[]>> {
+  return apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint);
+}
+
+export async function getDailyPlaylistById(id: string): Promise<ApiResult<DailyPlaylist>> {
+  const [playlistResult, lookupsResult] = await Promise.all([
+    apiFetch<ApiDailyPlaylist>(`${playlistsEndpoint}/${id}`),
+    loadLookups(),
+  ]);
+
+  if (!playlistResult.ok) {
+    return playlistResult;
+  }
+
+  return { ok: true, data: mapPlaylist(playlistResult.data, lookupsResult) };
+}
+
+export async function generatePlaylists(date: string): Promise<ApiResult<ApiDailyPlaylist[]>> {
+  return apiMutate<Record<string, never>, ApiDailyPlaylist[]>(
+    `${playlistsEndpoint}/generate?date=${encodeURIComponent(date)}`,
+    "POST",
+    {},
+  );
+}
+
+export async function publishPlaylist(id: string): Promise<ApiResult<ApiDailyPlaylist>> {
+  return apiMutate<Record<string, never>, ApiDailyPlaylist>(`${playlistsEndpoint}/${id}/publish`, "POST", {});
+}
+
+async function loadLookups(): Promise<PlaylistLookups> {
+  const [screensResult, buildingsResult, creativesResult, campaignsResult] = await Promise.all([
+    apiFetch<ApiScreen[]>(screensEndpoint),
+    apiFetch<ApiBuilding[]>(buildingsEndpoint),
+    apiFetch<ApiCreative[]>(creativesEndpoint),
+    getCampaignsList(),
+  ]);
+
+  const screensData: ApiScreen[] = screensResult.ok ? screensResult.data : [];
+  const buildingsData: ApiBuilding[] = buildingsResult.ok ? buildingsResult.data : [];
+  const creativesData: ApiCreative[] = creativesResult.ok ? creativesResult.data : [];
+  const campaignsData: ApiCampaign[] = campaignsResult.ok ? campaignsResult.data : [];
+
+  return {
+    screenNamesById: new Map(screensData.map((screen) => [screen.id, screen.name] as const)),
+    buildingIdByScreenId: new Map(screensData.map((screen) => [screen.id, screen.buildingId] as const)),
+    buildingNamesById: new Map(buildingsData.map((building) => [building.id, building.name] as const)),
+    creativeNamesById: new Map(creativesData.map((creative) => [creative.id, creative.name] as const)),
+    creativeMediaTypesById: new Map(creativesData.map((creative) => [creative.id, creative.mediaType] as const)),
+    campaignNamesById: new Map(campaignsData.map((campaign) => [campaign.id, campaign.name] as const)),
+  };
+}
+
+function mapPlaylist(playlist: ApiDailyPlaylist, lookups: PlaylistLookups): DailyPlaylist {
+  const screenName = lookups.screenNamesById.get(playlist.screenId) ?? playlist.screenId;
+  const buildingId = lookups.buildingIdByScreenId.get(playlist.screenId);
+  const buildingName = buildingId ? (lookups.buildingNamesById.get(buildingId) ?? buildingId) : "-";
 
   return {
     id: playlist.id,
@@ -72,17 +105,21 @@ function mapPlaylist(
     buildingName,
     version: `v${playlist.version}`,
     status: normalizePlaylistStatus(playlist.status),
-    items: playlist.items.map((item) => mapPlaylistItem(item, creativeNamesById)),
+    items: playlist.items
+      .map((item) => mapPlaylistItem(item, lookups))
+      .sort((a, b) => a.position - b.position),
     generatedAt: formatDateTime(playlist.generatedAt),
     publishedAt: playlist.publishedAt ? formatDateTime(playlist.publishedAt) : null,
     downloadedAt: null,
   };
 }
 
-function mapPlaylistItem(item: ApiDailyPlaylistItem, creativeNamesById: Map<string, string>): DailyPlaylistItem {
+function mapPlaylistItem(item: ApiDailyPlaylistItem, lookups: PlaylistLookups): DailyPlaylistItem {
   return {
     id: item.id,
-    creativeName: creativeNamesById.get(item.creativeId) ?? item.creativeId,
+    creativeName: lookups.creativeNamesById.get(item.creativeId) ?? item.creativeId,
+    campaignName: lookups.campaignNamesById.get(item.campaignId) ?? item.campaignId,
+    mediaType: lookups.creativeMediaTypesById.get(item.creativeId) ?? "-",
     position: item.order,
     durationSeconds: item.durationSeconds,
   };

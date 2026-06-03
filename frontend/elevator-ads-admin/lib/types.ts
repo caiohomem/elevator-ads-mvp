@@ -63,6 +63,8 @@ export interface Campaign {
 export interface DailyPlaylistItem {
   id: string;
   creativeName: string;
+  campaignName: string;
+  mediaType: string;
   position: number;
   durationSeconds: number;
 }
