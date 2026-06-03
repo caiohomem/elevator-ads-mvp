@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using ElevatorAds.Application.Advertisers;
 using ElevatorAds.Application.Advertisers.Dtos;
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Application.Campaigns;
@@ -16,6 +17,7 @@ using ElevatorAds.Domain.Interfaces;
 using ElevatorAds.Infrastructure.Persistence;
 using ElevatorAds.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "Frontend";
@@ -90,7 +92,15 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
 var buildings = app.MapGroup("/api/buildings");
 
-buildings.MapGet("/", async (BuildingService service) => Results.Ok(await service.GetAllAsync()));
+buildings.MapGet("/", async ([AsParameters] PagedQuery query, BuildingService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 buildings.MapGet("/{id:guid}", async (Guid id, BuildingService service) =>
 {
@@ -122,7 +132,15 @@ buildings.MapDelete("/{id:guid}", async (Guid id, BuildingService service) =>
 
 var screens = app.MapGroup("/api/screens");
 
-screens.MapGet("/", async (ScreenService service) => Results.Ok(await service.GetAllAsync()));
+screens.MapGet("/", async ([AsParameters] PagedQuery query, ScreenService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 screens.MapGet("/{id:guid}", async (Guid id, ScreenService service) =>
 {
@@ -223,12 +241,27 @@ screens.MapPost("/{screenId:guid}/playback-reports", async (Guid screenId, Creat
         : Results.NotFound();
 });
 
-screens.MapGet("/{screenId:guid}/playback-reports", async (Guid screenId, ProofOfPlayService service) =>
-    Results.Ok(await service.GetByScreenAsync(screenId)));
+screens.MapGet("/{screenId:guid}/playback-reports", async (Guid screenId, [AsParameters] PagedQuery query, ProofOfPlayService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedByScreenAsync(screenId, query));
+});
 
 var advertisers = app.MapGroup("/api/advertisers");
 
-advertisers.MapGet("/", async (AdvertiserService service) => Results.Ok(await service.GetAllAsync()));
+advertisers.MapGet("/", async ([AsParameters] PagedQuery query, AdvertiserService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 advertisers.MapGet("/{id:guid}", async (Guid id, AdvertiserService service) =>
 {
@@ -260,7 +293,15 @@ advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =
 
 var creatives = app.MapGroup("/api/creatives");
 
-creatives.MapGet("/", async (CreativeService service) => Results.Ok(await service.GetAllAsync()));
+creatives.MapGet("/", async ([AsParameters] PagedQuery query, CreativeService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 creatives.MapGet("/{id:guid}", async (Guid id, CreativeService service) =>
 {
@@ -325,7 +366,15 @@ creatives.MapPost("/{id:guid}/reject", async (Guid id, CreativeService service) 
 
 var campaigns = app.MapGroup("/api/campaigns");
 
-campaigns.MapGet("/", async (CampaignService service) => Results.Ok(await service.GetAllAsync()));
+campaigns.MapGet("/", async ([AsParameters] PagedQuery query, CampaignService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 campaigns.MapGet("/{id:guid}", async (Guid id, CampaignService service) =>
 {
@@ -388,8 +437,15 @@ campaigns.MapPut(
             : Results.UnprocessableEntity(new { error = result.Error });
     });
 
-campaigns.MapGet("/{campaignId:guid}/playback-reports", async (Guid campaignId, ProofOfPlayService service) =>
-    Results.Ok(await service.GetByCampaignAsync(campaignId)));
+campaigns.MapGet("/{campaignId:guid}/playback-reports", async (Guid campaignId, [AsParameters] PagedQuery query, ProofOfPlayService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedByCampaignAsync(campaignId, query));
+});
 
 var playlists = app.MapGroup("/api/playlists");
 
@@ -404,7 +460,15 @@ playlists.MapPost("/generate", async (string? date, PlaylistGenerationService se
     return Results.Ok(generated);
 });
 
-playlists.MapGet("/", async (PlaylistGenerationService service) => Results.Ok(await service.GetAllAsync()));
+playlists.MapGet("/", async ([AsParameters] PagedQuery query, PlaylistGenerationService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 playlists.MapGet("/{id:guid}", async (Guid id, PlaylistGenerationService service) =>
 {
@@ -422,7 +486,15 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
 
 var playbackReports = app.MapGroup("/api/playback-reports");
 
-playbackReports.MapGet("/", async (ProofOfPlayService service) => Results.Ok(await service.GetAllAsync()));
+playbackReports.MapGet("/", async ([AsParameters] PagedQuery query, ProofOfPlayService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+});
 
 var reports = app.MapGroup("/api/reports");
 
@@ -468,6 +540,21 @@ reports.MapGet("/screens", async (string? from, string? to, DeliveryReportServic
 
 static bool TryParseDate(string? value, out DateOnly date) =>
     DateOnly.TryParseExact(value, "yyyy-MM-dd", out date);
+
+static string? ValidatePagedQuery(PagedQuery query)
+{
+    if (query.Page < 1)
+    {
+        return "page must be greater than 0.";
+    }
+
+    if (query.PageSize is < 1 or > 100)
+    {
+        return "pageSize must be between 1 and 100.";
+    }
+
+    return null;
+}
 
 app.Run();
 

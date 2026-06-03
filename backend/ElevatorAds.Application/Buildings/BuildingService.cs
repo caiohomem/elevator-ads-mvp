@@ -1,3 +1,4 @@
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Buildings.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
@@ -14,6 +15,14 @@ public sealed class BuildingService
     {
         var buildings = await _repository.GetAllAsync();
         return buildings.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<BuildingDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _repository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<BuildingDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<BuildingDto?> GetByIdAsync(Guid id)

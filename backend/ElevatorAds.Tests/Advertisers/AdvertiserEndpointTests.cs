@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -37,18 +38,43 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetAdvertisers_ReturnsAll()
+    public async Task GetAdvertisers_ReturnsPagedResult_AndSupportsFiltering()
     {
         var client = CreateClient();
-        var created = await CreateAdvertiserAsync(client);
+        var alpha = await CreateAdvertiserAsync(client, "Alpha Media", "Active");
+        var beta = await CreateAdvertiserAsync(client, "Beta Media", "Inactive");
+        var gamma = await CreateAdvertiserAsync(client, "Gamma Media", "Active");
 
-        var response = await client.GetAsync("/api/advertisers");
+        var pageResponse = await client.GetAsync("/api/advertisers?page=1&pageSize=2");
+        var sortedResponse = await client.GetAsync("/api/advertisers?sortBy=name&sortDirection=asc");
+        var searchedResponse = await client.GetAsync("/api/advertisers?search=beta");
+        var activeResponse = await client.GetAsync("/api/advertisers?status=Active");
+        var invalidPageResponse = await client.GetAsync("/api/advertisers?page=0");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, searchedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageResponse.StatusCode);
 
-        var advertisers = await response.Content.ReadFromJsonAsync<List<AdvertiserDto>>();
-        Assert.NotNull(advertisers);
-        Assert.Contains(advertisers!, advertiser => advertiser.Id == created.Id);
+        var page = await pageResponse.Content.ReadFromJsonAsync<PagedResult<AdvertiserDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<AdvertiserDto>>();
+        var searched = await searchedResponse.Content.ReadFromJsonAsync<PagedResult<AdvertiserDto>>();
+        var active = await activeResponse.Content.ReadFromJsonAsync<PagedResult<AdvertiserDto>>();
+
+        Assert.NotNull(page);
+        Assert.NotNull(sorted);
+        Assert.NotNull(searched);
+        Assert.NotNull(active);
+        Assert.Equal(2, page!.Items.Count);
+        Assert.Equal(3, page.TotalItems);
+        Assert.Equal(2, page.TotalPages);
+        Assert.Equal("Alpha Media", sorted!.Items[0].Name);
+        Assert.Single(searched!.Items);
+        Assert.Equal(beta.Id, searched.Items[0].Id);
+        Assert.All(active!.Items, item => Assert.Equal("Active", item.Status));
+        Assert.Contains(active.Items, item => item.Id == alpha.Id);
+        Assert.Contains(active.Items, item => item.Id == gamma.Id);
     }
 
     [Fact]
@@ -147,16 +173,16 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
 
     private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
 
-    private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
+    private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client, string? name = null, string status = "Active")
     {
         var request = new CreateAdvertiserRequest(
-            "Acme",
+            name ?? "Acme",
             "Acme Holdings Ltd",
             "PT123456789",
             "Jane Doe",
             "jane@acme.test",
             "+351123456789",
-            "Active");
+            status);
 
         var response = await client.PostAsJsonAsync("/api/advertisers", request);
         response.EnsureSuccessStatusCode();

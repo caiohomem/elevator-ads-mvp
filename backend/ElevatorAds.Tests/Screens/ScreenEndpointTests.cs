@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -38,18 +39,43 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetScreens_ReturnsCreatedScreen()
+    public async Task GetScreens_ReturnsPagedResult_AndSupportsFiltering()
     {
         var client = CreateClient();
-        var created = await CreateScreenAsync(client);
+        var alpha = await CreateScreenAsync(client, "Alpha Screen", "Active");
+        var beta = await CreateScreenAsync(client, "Beta Screen", "Inactive");
+        var gamma = await CreateScreenAsync(client, "Gamma Screen", "Maintenance");
 
-        var response = await client.GetAsync("/api/screens");
+        var pageResponse = await client.GetAsync("/api/screens?page=1&pageSize=2");
+        var sortedResponse = await client.GetAsync("/api/screens?sortBy=name&sortDirection=asc");
+        var searchedResponse = await client.GetAsync("/api/screens?search=gamma");
+        var activeResponse = await client.GetAsync("/api/screens?status=Active");
+        var invalidPageSizeResponse = await client.GetAsync("/api/screens?pageSize=101");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, searchedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageSizeResponse.StatusCode);
 
-        var screens = await response.Content.ReadFromJsonAsync<List<ScreenDto>>();
-        Assert.NotNull(screens);
-        Assert.Contains(screens!, screen => screen.Id == created.Id);
+        var page = await pageResponse.Content.ReadFromJsonAsync<PagedResult<ScreenDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<ScreenDto>>();
+        var searched = await searchedResponse.Content.ReadFromJsonAsync<PagedResult<ScreenDto>>();
+        var activeSet = await activeResponse.Content.ReadFromJsonAsync<PagedResult<ScreenDto>>();
+
+        Assert.NotNull(page);
+        Assert.NotNull(sorted);
+        Assert.NotNull(searched);
+        Assert.NotNull(activeSet);
+        Assert.Equal(2, page!.Items.Count);
+        Assert.Equal(3, page.TotalItems);
+        Assert.Equal(2, page.TotalPages);
+        Assert.Equal("Alpha Screen", sorted!.Items[0].Name);
+        Assert.Single(searched!.Items);
+        Assert.Equal(gamma.Id, searched.Items[0].Id);
+        Assert.All(activeSet!.Items, item => Assert.Equal("Active", item.Status));
+        Assert.Contains(activeSet.Items, item => item.Id == alpha.Id);
+        Assert.Contains(page.Items, item => item.Id == beta.Id);
     }
 
     [Fact]
@@ -183,17 +209,17 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
         return building!;
     }
 
-    private async Task<ScreenDto> CreateScreenAsync(HttpClient client)
+    private async Task<ScreenDto> CreateScreenAsync(HttpClient client, string? name = null, string status = "Active")
     {
         var building = await CreateBuildingAsync(client);
         var request = new CreateScreenRequest(
             building.Id,
-            "Lobby Screen",
-            "SCR-001",
+            name ?? "Lobby Screen",
+            $"SCR-{Guid.NewGuid():N}",
             1080,
             1920,
             "Portrait",
-            "Active");
+            status);
 
         var response = await client.PostAsJsonAsync("/api/screens", request);
         response.EnsureSuccessStatusCode();

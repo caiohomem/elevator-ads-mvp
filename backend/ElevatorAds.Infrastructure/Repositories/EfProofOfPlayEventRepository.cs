@@ -1,4 +1,5 @@
 using ElevatorAds.Domain.Entities;
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,15 @@ public sealed class EfProofOfPlayEventRepository : IProofOfPlayEventRepository
             .OrderByDescending(item => item.PlayedAt)
             .ThenByDescending(item => item.CreatedAt)
             .ToListAsync();
+
+    public async Task<(IEnumerable<ProofOfPlayEvent> Items, int TotalCount)> GetPagedAsync(PagedQuery query) =>
+        await GetPagedAsyncInternal(_context.ProofOfPlayEvents.AsNoTracking(), query);
+
+    public async Task<(IEnumerable<ProofOfPlayEvent> Items, int TotalCount)> GetPagedByScreenIdAsync(Guid screenId, PagedQuery query) =>
+        await GetPagedAsyncInternal(_context.ProofOfPlayEvents.AsNoTracking().Where(item => item.ScreenId == screenId), query);
+
+    public async Task<(IEnumerable<ProofOfPlayEvent> Items, int TotalCount)> GetPagedByCampaignIdAsync(Guid campaignId, PagedQuery query) =>
+        await GetPagedAsyncInternal(_context.ProofOfPlayEvents.AsNoTracking().Where(item => item.CampaignId == campaignId), query);
 
     public async Task<ProofOfPlayEvent> AddAsync(ProofOfPlayEvent proofOfPlay)
     {
@@ -47,4 +57,33 @@ public sealed class EfProofOfPlayEventRepository : IProofOfPlayEventRepository
             .OrderByDescending(item => item.PlayedAt)
             .ThenByDescending(item => item.CreatedAt)
             .ToListAsync();
+
+    private static async Task<(IEnumerable<ProofOfPlayEvent> Items, int TotalCount)> GetPagedAsyncInternal(
+        IQueryable<ProofOfPlayEvent> query,
+        PagedQuery pagedQuery)
+    {
+        var sortedQuery = ApplySort(query, pagedQuery);
+        var totalCount = await sortedQuery.CountAsync();
+        var items = await sortedQuery
+            .Skip((pagedQuery.Page - 1) * pagedQuery.PageSize)
+            .Take(pagedQuery.PageSize)
+            .ToListAsync();
+
+        return (items, totalCount);
+    }
+
+    private static IOrderedQueryable<ProofOfPlayEvent> ApplySort(IQueryable<ProofOfPlayEvent> query, PagedQuery pagedQuery)
+    {
+        var sortBy = pagedQuery.SortBy?.Trim().ToLowerInvariant();
+        var descending = string.Equals(pagedQuery.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+        return sortBy switch
+        {
+            "playedat" when descending => query.OrderByDescending(item => item.PlayedAt).ThenByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id),
+            "playedat" => query.OrderBy(item => item.PlayedAt).ThenBy(item => item.CreatedAt).ThenBy(item => item.Id),
+            "createdat" when descending => query.OrderByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id),
+            "createdat" => query.OrderBy(item => item.CreatedAt).ThenBy(item => item.Id),
+            _ => query.OrderByDescending(item => item.PlayedAt).ThenByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id)
+        };
+    }
 }

@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -35,18 +36,49 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetBuildings_ReturnsCreatedBuilding()
+    public async Task GetBuildings_ReturnsPagedResult_AndSupportsSortingAndValidation()
     {
         var client = CreateClient();
-        var created = await CreateBuildingAsync(client);
+        var alpha = await CreateBuildingAsync(client, "Alpha Tower", "Lisbon");
+        var bravo = await CreateBuildingAsync(client, "Bravo Tower", "Porto");
+        var charlie = await CreateBuildingAsync(client, "Charlie Tower", "Braga");
 
-        var response = await client.GetAsync("/api/buildings");
+        var page1Response = await client.GetAsync("/api/buildings?page=1&pageSize=2");
+        var page2Response = await client.GetAsync("/api/buildings?page=2&pageSize=2");
+        var sortedResponse = await client.GetAsync("/api/buildings?sortBy=name&sortDirection=asc");
+        var searchedResponse = await client.GetAsync("/api/buildings?search=bravo");
+        var invalidPageResponse = await client.GetAsync("/api/buildings?page=0");
+        var invalidPageSizeResponse = await client.GetAsync("/api/buildings?pageSize=101");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, page1Response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, page2Response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, searchedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageSizeResponse.StatusCode);
 
-        var buildings = await response.Content.ReadFromJsonAsync<List<BuildingDto>>();
-        Assert.NotNull(buildings);
-        Assert.Contains(buildings!, building => building.Id == created.Id);
+        var page1 = await page1Response.Content.ReadFromJsonAsync<PagedResult<BuildingDto>>();
+        var page2 = await page2Response.Content.ReadFromJsonAsync<PagedResult<BuildingDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<BuildingDto>>();
+        var searched = await searchedResponse.Content.ReadFromJsonAsync<PagedResult<BuildingDto>>();
+
+        Assert.NotNull(page1);
+        Assert.NotNull(page2);
+        Assert.NotNull(sorted);
+        Assert.NotNull(searched);
+        Assert.Equal(1, page1!.Page);
+        Assert.Equal(2, page1.PageSize);
+        Assert.Equal(3, page1.TotalItems);
+        Assert.Equal(2, page1.TotalPages);
+        Assert.Equal(2, page1.Items.Count);
+        Assert.Equal(2, page2!.Page);
+        Assert.Equal(1, page2.Items.Count);
+        Assert.Equal("Alpha Tower", sorted!.Items[0].Name);
+        Assert.Single(searched!.Items);
+        Assert.Equal(bravo.Id, searched.Items[0].Id);
+        Assert.Contains(page1.Items, item => item.Id == bravo.Id);
+        Assert.Contains(page1.Items, item => item.Id == charlie.Id);
+        Assert.Contains(page2.Items, item => item.Id == alpha.Id);
     }
 
     [Fact]
@@ -142,12 +174,12 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
 
     private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
 
-    private async Task<BuildingDto> CreateBuildingAsync(HttpClient client)
+    private async Task<BuildingDto> CreateBuildingAsync(HttpClient client, string? name = null, string? city = null)
     {
         var request = new CreateBuildingRequest(
-            "Tower One",
+            name ?? "Tower One",
             "123 Main St",
-            "Lisbon",
+            city ?? "Lisbon",
             "Portugal",
             "1000-001",
             "Corporate",

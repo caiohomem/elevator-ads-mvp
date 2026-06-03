@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -29,6 +30,44 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
         var playlist = Assert.Single(playlists!, item => item.ScreenId == screen.Id);
         Assert.Equal("Draft", playlist.Status);
         Assert.Single(playlist.Items);
+    }
+
+    [Fact]
+    public async Task GetPlaylists_ReturnsPagedResult_AndSupportsStatusFiltering()
+    {
+        var client = CreateClient();
+        var screenOne = await CreateScreenAsync(client);
+        var screenTwo = await CreateScreenAsync(client);
+        var campaign = await CreateCampaignAsync(client, CampaignStatus: "Active");
+        var creative = await CreateAndApproveCreativeAsync(client);
+        await AssignCreativeAsync(client, campaign.Id, creative.Id);
+
+        await GenerateForScreenAsync(client, screenOne.Id);
+        await GenerateForScreenAsync(client, screenTwo.Id);
+
+        var pageResponse = await client.GetAsync("/api/playlists?page=1&pageSize=1");
+        var sortedResponse = await client.GetAsync("/api/playlists?sortBy=date&sortDirection=asc");
+        var statusResponse = await client.GetAsync("/api/playlists?status=Draft");
+        var invalidPageResponse = await client.GetAsync("/api/playlists?page=0");
+
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageResponse.StatusCode);
+
+        var page = await pageResponse.Content.ReadFromJsonAsync<PagedResult<DailyPlaylistDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<DailyPlaylistDto>>();
+        var statusSet = await statusResponse.Content.ReadFromJsonAsync<PagedResult<DailyPlaylistDto>>();
+
+        Assert.NotNull(page);
+        Assert.NotNull(sorted);
+        Assert.NotNull(statusSet);
+        Assert.Equal(1, page!.Items.Count);
+        Assert.Equal(2, page.TotalItems);
+        Assert.Equal(2, page.TotalPages);
+        Assert.True(DateOnly.Parse(sorted!.Items[0].Date) <= DateOnly.Parse(sorted.Items[1].Date));
+        Assert.All(statusSet!.Items, item => Assert.Equal("Draft", item.Status));
+        Assert.Contains(page.Items, item => item.ScreenId == screenOne.Id || item.ScreenId == screenTwo.Id);
     }
 
     [Fact]

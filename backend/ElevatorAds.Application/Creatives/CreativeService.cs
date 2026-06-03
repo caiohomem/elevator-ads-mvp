@@ -1,3 +1,4 @@
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Creatives.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
@@ -20,6 +21,14 @@ public sealed class CreativeService
     {
         var creatives = await _creativeRepository.GetAllAsync();
         return creatives.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<CreativeDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _creativeRepository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<CreativeDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<CreativeDto?> GetByIdAsync(Guid id)

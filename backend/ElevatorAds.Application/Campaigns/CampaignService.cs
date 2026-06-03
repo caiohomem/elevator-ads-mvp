@@ -1,3 +1,4 @@
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
@@ -19,6 +20,14 @@ public sealed class CampaignService
     {
         var campaigns = await _campaignRepository.GetAllAsync();
         return campaigns.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<CampaignDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _campaignRepository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<CampaignDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<CampaignDto?> GetByIdAsync(Guid id)

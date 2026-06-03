@@ -1,4 +1,5 @@
 using System.Net.Mail;
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Advertisers.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
@@ -15,6 +16,14 @@ public sealed class AdvertiserService
     {
         var advertisers = await _repository.GetAllAsync();
         return advertisers.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<AdvertiserDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _repository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<AdvertiserDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<AdvertiserDto?> GetByIdAsync(Guid id)
