@@ -1,8 +1,52 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
 import type { ApiAdvertiser, ApiCreative, ApprovalStatus, Creative } from "@/lib/types";
 
 const creativesEndpoint = "/api/creatives";
 const advertisersEndpoint = "/api/advertisers";
+
+export type CreateCreativePayload = {
+  advertiserId: string;
+  name: string;
+  mediaUrl: string;
+  mediaType: string;
+  durationSeconds: number;
+};
+
+export type UpdateCreativePayload = {
+  name: string;
+  mediaUrl: string;
+  mediaType: string;
+  durationSeconds: number;
+};
+
+export async function createCreative(
+  payload: CreateCreativePayload,
+): Promise<ApiResult<ApiCreative>> {
+  return apiMutate<CreateCreativePayload, ApiCreative>(creativesEndpoint, "POST", payload);
+}
+
+export async function updateCreative(
+  id: string,
+  payload: UpdateCreativePayload,
+): Promise<ApiResult<ApiCreative>> {
+  return apiMutate<UpdateCreativePayload, ApiCreative>(`${creativesEndpoint}/${id}`, "PUT", payload);
+}
+
+export async function submitCreativeForReview(id: string): Promise<ApiResult<ApiCreative>> {
+  return apiMutate<Record<string, never>, ApiCreative>(
+    `${creativesEndpoint}/${id}/submit-for-review`,
+    "POST",
+    {},
+  );
+}
+
+export async function approveCreative(id: string): Promise<ApiResult<ApiCreative>> {
+  return apiMutate<Record<string, never>, ApiCreative>(`${creativesEndpoint}/${id}/approve`, "POST", {});
+}
+
+export async function rejectCreative(id: string): Promise<ApiResult<ApiCreative>> {
+  return apiMutate<Record<string, never>, ApiCreative>(`${creativesEndpoint}/${id}/reject`, "POST", {});
+}
 
 export async function getCreatives(): Promise<ApiResult<Creative[]>> {
   const [creativesResult, advertisersResult] = await Promise.all([
@@ -24,6 +68,10 @@ export async function getCreatives(): Promise<ApiResult<Creative[]>> {
     ok: true,
     data: creativesResult.data.map((creative) => mapCreative(creative, advertisersById)),
   };
+}
+
+export async function getCreativesList(): Promise<ApiResult<ApiCreative[]>> {
+  return apiFetch<ApiCreative[]>(creativesEndpoint);
 }
 
 function mapCreative(creative: ApiCreative, advertisersById: Map<string, string>): Creative {

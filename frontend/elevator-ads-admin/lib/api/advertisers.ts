@@ -1,8 +1,33 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
 import type { Advertiser, ApiAdvertiser, ApiCampaign, EntityStatus } from "@/lib/types";
 
 const advertisersEndpoint = "/api/advertisers";
 const campaignsEndpoint = "/api/campaigns";
+
+export type CreateAdvertiserPayload = {
+  name: string;
+  legalName: string;
+  taxId: string;
+  contactName: string;
+  contactEmail: string;
+  phone: string;
+  status: string;
+};
+
+export type UpdateAdvertiserPayload = CreateAdvertiserPayload;
+
+export async function createAdvertiser(
+  payload: CreateAdvertiserPayload,
+): Promise<ApiResult<ApiAdvertiser>> {
+  return apiMutate<CreateAdvertiserPayload, ApiAdvertiser>(advertisersEndpoint, "POST", payload);
+}
+
+export async function updateAdvertiser(
+  id: string,
+  payload: UpdateAdvertiserPayload,
+): Promise<ApiResult<ApiAdvertiser>> {
+  return apiMutate<UpdateAdvertiserPayload, ApiAdvertiser>(`${advertisersEndpoint}/${id}`, "PUT", payload);
+}
 
 export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
   const [advertisersResult, campaignsResult] = await Promise.all([
@@ -27,6 +52,10 @@ export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
     ok: true,
     data: advertisersResult.data.map((advertiser) => mapAdvertiser(advertiser, campaignCounts)),
   };
+}
+
+export async function getAdvertisersList(): Promise<ApiResult<ApiAdvertiser[]>> {
+  return apiFetch<ApiAdvertiser[]>(advertisersEndpoint);
 }
 
 function mapAdvertiser(advertiser: ApiAdvertiser, campaignCounts: Map<string, number>): Advertiser {

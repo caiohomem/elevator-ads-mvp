@@ -75,14 +75,23 @@ export interface TranslationDictionary {
     editBuilding: string;
     newScreen: string;
     editScreen: string;
+    newAdvertiser: string;
+    editAdvertiser: string;
+    newCreative: string;
+    editCreative: string;
+    submitForReview: string;
+    approve: string;
+    reject: string;
     save: string;
     cancel: string;
     saving: string;
     saved: string;
     saveFailed: string;
     fieldRequired: string;
+    invalidEmail: string;
     mustBePositive: string;
     mustBeGreaterThanZero: string;
+    actionFailed: string;
     edit: string;
     building: {
       name: string;
@@ -100,6 +109,22 @@ export interface TranslationDictionary {
       resolutionHeight: string;
       orientation: string;
       externalCode: string;
+    };
+    advertiser: {
+      name: string;
+      legalName: string;
+      taxId: string;
+      contactName: string;
+      contactEmail: string;
+      phone: string;
+      status: string;
+    };
+    creative: {
+      advertiserId: string;
+      name: string;
+      mediaUrl: string;
+      mediaType: string;
+      durationSeconds: string;
     };
   };
 }
@@ -208,14 +233,23 @@ export const en: TranslationDictionary = {
     editBuilding: "Edit building",
     newScreen: "New screen",
     editScreen: "Edit screen",
+    newAdvertiser: "New advertiser",
+    editAdvertiser: "Edit advertiser",
+    newCreative: "New creative",
+    editCreative: "Edit creative",
+    submitForReview: "Submit for review",
+    approve: "Approve",
+    reject: "Reject",
     save: "Save",
     cancel: "Cancel",
     saving: "Saving...",
     saved: "Saved",
     saveFailed: "Save failed",
     fieldRequired: "This field is required.",
+    invalidEmail: "Enter a valid email address.",
     mustBePositive: "Value cannot be negative.",
     mustBeGreaterThanZero: "Value must be greater than zero.",
+    actionFailed: "Action failed",
     edit: "Edit",
     building: {
       name: "Name",
@@ -233,6 +267,22 @@ export const en: TranslationDictionary = {
       resolutionHeight: "Resolution height (px)",
       orientation: "Orientation",
       externalCode: "External code",
+    },
+    advertiser: {
+      name: "Name",
+      legalName: "Legal name",
+      taxId: "Tax ID",
+      contactName: "Contact name",
+      contactEmail: "Contact email",
+      phone: "Phone",
+      status: "Status",
+    },
+    creative: {
+      advertiserId: "Advertiser",
+      name: "Name",
+      mediaUrl: "Media URL",
+      mediaType: "Media type",
+      durationSeconds: "Duration (seconds)",
     },
   },
 };
