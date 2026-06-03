@@ -1,4 +1,4 @@
-import { apiFetch, type ApiResult } from "@/lib/api/client";
+import { apiDelete, apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
 import type { ApiAdvertiser, ApiCampaign, Campaign, CampaignStatus } from "@/lib/types";
 
 const campaignsEndpoint = "/api/campaigns";
@@ -10,6 +10,8 @@ type ApiCampaignCreative = {
   creativeId: string;
   createdAt: string;
 };
+
+export type { ApiCampaignCreative };
 
 type ApiDeliveryConstraints = {
   id: string;
@@ -29,6 +31,55 @@ type CampaignExtras = {
   creatives: number;
   deliveryConstraints: string;
 };
+
+export type CreateCampaignPayload = {
+  advertiserId: string;
+  name: string;
+  startDate: string | null;
+  endDate: string | null;
+  status: string;
+  dailyBudget: number | null;
+  totalBudget: number | null;
+  maxCpm: number | null;
+};
+
+export type UpdateCampaignPayload = Omit<CreateCampaignPayload, "advertiserId">;
+
+export async function createCampaign(payload: CreateCampaignPayload): Promise<ApiResult<ApiCampaign>> {
+  return apiMutate<CreateCampaignPayload, ApiCampaign>(campaignsEndpoint, "POST", payload);
+}
+
+export async function updateCampaign(
+  id: string,
+  payload: UpdateCampaignPayload,
+): Promise<ApiResult<ApiCampaign>> {
+  return apiMutate<UpdateCampaignPayload, ApiCampaign>(`${campaignsEndpoint}/${id}`, "PUT", payload);
+}
+
+export async function getCampaignsList(): Promise<ApiResult<ApiCampaign[]>> {
+  return apiFetch<ApiCampaign[]>(campaignsEndpoint);
+}
+
+export async function getCampaignCreatives(
+  campaignId: string,
+): Promise<ApiResult<ApiCampaignCreative[]>> {
+  return apiFetch<ApiCampaignCreative[]>(`${campaignsEndpoint}/${campaignId}/creatives`);
+}
+
+export async function assignCreative(
+  campaignId: string,
+  creativeId: string,
+): Promise<ApiResult<ApiCampaignCreative>> {
+  return apiMutate<Record<string, never>, ApiCampaignCreative>(
+    `${campaignsEndpoint}/${campaignId}/creatives/${creativeId}`,
+    "POST",
+    {},
+  );
+}
+
+export async function removeCreative(campaignId: string, creativeId: string): Promise<ApiResult<void>> {
+  return apiDelete(`${campaignsEndpoint}/${campaignId}/creatives/${creativeId}`);
+}
 
 export async function getCampaigns(): Promise<ApiResult<Campaign[]>> {
   const [campaignsResult, advertisersResult] = await Promise.all([
@@ -71,7 +122,11 @@ async function fetchCampaignExtras(campaignId: string): Promise<ApiResult<Campai
     return creativesResult;
   }
 
-  if (!constraintsResult.ok) {
+  let constraints: ApiDeliveryConstraints | null = null;
+
+  if (constraintsResult.ok) {
+    constraints = constraintsResult.data;
+  } else if (constraintsResult.status !== 404) {
     return constraintsResult;
   }
 
@@ -80,7 +135,7 @@ async function fetchCampaignExtras(campaignId: string): Promise<ApiResult<Campai
     data: {
       id: campaignId,
       creatives: creativesResult.data.length,
-      deliveryConstraints: formatDeliveryConstraints(constraintsResult.data),
+      deliveryConstraints: constraints ? formatDeliveryConstraints(constraints) : "All",
     },
   };
 }

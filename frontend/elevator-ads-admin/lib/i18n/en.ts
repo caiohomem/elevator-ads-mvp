@@ -79,6 +79,14 @@ export interface TranslationDictionary {
     editAdvertiser: string;
     newCreative: string;
     editCreative: string;
+    newCampaign: string;
+    editCampaign: string;
+    manageCreatives: string;
+    assignedCreatives: string;
+    availableCreatives: string;
+    assign: string;
+    remove: string;
+    startBeforeEnd: string;
     submitForReview: string;
     approve: string;
     reject: string;
@@ -125,6 +133,16 @@ export interface TranslationDictionary {
       mediaUrl: string;
       mediaType: string;
       durationSeconds: string;
+    };
+    campaign: {
+      advertiserId: string;
+      name: string;
+      status: string;
+      startDate: string;
+      endDate: string;
+      dailyBudget: string;
+      totalBudget: string;
+      maxCpm: string;
     };
   };
 }
@@ -237,6 +255,14 @@ export const en: TranslationDictionary = {
     editAdvertiser: "Edit advertiser",
     newCreative: "New creative",
     editCreative: "Edit creative",
+    newCampaign: "New campaign",
+    editCampaign: "Edit campaign",
+    manageCreatives: "Manage creatives",
+    assignedCreatives: "Assigned creatives",
+    availableCreatives: "Available approved creatives",
+    assign: "Assign",
+    remove: "Remove",
+    startBeforeEnd: "Start date must be before or equal to end date.",
     submitForReview: "Submit for review",
     approve: "Approve",
     reject: "Reject",
@@ -283,6 +309,16 @@ export const en: TranslationDictionary = {
       mediaUrl: "Media URL",
       mediaType: "Media type",
       durationSeconds: "Duration (seconds)",
+    },
+    campaign: {
+      advertiserId: "Advertiser",
+      name: "Name",
+      status: "Status",
+      startDate: "Start date",
+      endDate: "End date",
+      dailyBudget: "Daily budget",
+      totalBudget: "Total budget",
+      maxCpm: "Max CPM",
     },
   },
 };
