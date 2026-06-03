@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -44,18 +45,42 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task ListCampaigns_ReturnsOk()
+    public async Task ListCampaigns_ReturnsPagedResult_AndSupportsFiltering()
     {
         var client = CreateClient();
-        var created = await CreateCampaignAsync(client);
+        var draft = await CreateCampaignAsync(client, "Draft Campaign", "Draft");
+        var active = await CreateCampaignAsync(client, "Active Campaign", "Active");
+        var paused = await CreateCampaignAsync(client, "Paused Campaign", "Paused");
 
-        var response = await client.GetAsync("/api/campaigns");
+        var pageResponse = await client.GetAsync("/api/campaigns?page=1&pageSize=2");
+        var sortedResponse = await client.GetAsync("/api/campaigns?sortBy=name&sortDirection=asc");
+        var searchedResponse = await client.GetAsync("/api/campaigns?search=paused");
+        var activeResponse = await client.GetAsync("/api/campaigns?status=Active");
+        var invalidPageResponse = await client.GetAsync("/api/campaigns?page=0");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, searchedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageResponse.StatusCode);
 
-        var campaigns = await response.Content.ReadFromJsonAsync<List<CampaignDto>>();
-        Assert.NotNull(campaigns);
-        Assert.Contains(campaigns!, campaign => campaign.Id == created.Id);
+        var page = await pageResponse.Content.ReadFromJsonAsync<PagedResult<CampaignDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<CampaignDto>>();
+        var searched = await searchedResponse.Content.ReadFromJsonAsync<PagedResult<CampaignDto>>();
+        var activeSet = await activeResponse.Content.ReadFromJsonAsync<PagedResult<CampaignDto>>();
+
+        Assert.NotNull(page);
+        Assert.NotNull(sorted);
+        Assert.NotNull(searched);
+        Assert.NotNull(activeSet);
+        Assert.Equal(2, page!.Items.Count);
+        Assert.Equal(3, page.TotalItems);
+        Assert.Equal(2, page.TotalPages);
+        Assert.Equal("Active Campaign", sorted!.Items[0].Name);
+        Assert.Single(searched!.Items);
+        Assert.Equal(paused.Id, searched.Items[0].Id);
+        Assert.All(activeSet!.Items, item => Assert.Equal("Active", item.Status));
+        Assert.Contains(activeSet.Items, item => item.Id == active.Id);
     }
 
     [Fact]
@@ -198,15 +223,15 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
         return advertiser!;
     }
 
-    private async Task<CampaignDto> CreateCampaignAsync(HttpClient client)
+    private async Task<CampaignDto> CreateCampaignAsync(HttpClient client, string? name = null, string status = "Draft")
     {
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCampaignRequest(
             advertiser.Id,
-            "Summer Push",
+            name ?? "Summer Push",
             new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(2026, 6, 30, 0, 0, 0, DateTimeKind.Utc),
-            "Draft",
+            status,
             100m,
             1000m,
             8.5m);

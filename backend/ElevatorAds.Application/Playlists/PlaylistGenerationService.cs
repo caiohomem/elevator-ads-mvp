@@ -1,4 +1,5 @@
 using ElevatorAds.Application.Campaigns;
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Playlists.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
@@ -38,6 +39,14 @@ public sealed class PlaylistGenerationService
     {
         var playlists = await _playlistRepository.GetAllAsync();
         return playlists.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<DailyPlaylistDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _playlistRepository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<DailyPlaylistDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<DailyPlaylistDto?> GetByIdAsync(Guid id)

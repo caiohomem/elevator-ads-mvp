@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using ElevatorAds.Domain.Interfaces;
@@ -159,7 +160,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task ListPlaybackReportsByScreen_ReturnsSubmittedReport()
+    public async Task ListPlaybackReportsByScreen_ReturnsPagedResult()
     {
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -182,16 +183,19 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         var submitted = await postResponse.Content.ReadFromJsonAsync<PlaybackReportDto>();
         Assert.NotNull(submitted);
 
-        var listResponse = await client.GetAsync($"/api/screens/{screen.Id}/playback-reports");
+        var listResponse = await client.GetAsync($"/api/screens/{screen.Id}/playback-reports?page=1&pageSize=10");
 
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-        var reports = await listResponse.Content.ReadFromJsonAsync<List<PlaybackReportDto>>();
+        var reports = await listResponse.Content.ReadFromJsonAsync<PagedResult<PlaybackReportDto>>();
         Assert.NotNull(reports);
-        Assert.Contains(reports!, report => report.Id == submitted!.Id);
+        Assert.Equal(1, reports!.Items.Count);
+        Assert.Equal(1, reports.TotalItems);
+        Assert.Equal(1, reports.TotalPages);
+        Assert.Contains(reports.Items, report => report.Id == submitted!.Id);
     }
 
     [Fact]
-    public async Task ListPlaybackReportsByCampaign_ReturnsSubmittedReport()
+    public async Task ListPlaybackReportsByCampaign_ReturnsPagedResult()
     {
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -214,16 +218,19 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         var submitted = await postResponse.Content.ReadFromJsonAsync<PlaybackReportDto>();
         Assert.NotNull(submitted);
 
-        var listResponse = await client.GetAsync($"/api/campaigns/{campaign.Id}/playback-reports");
+        var listResponse = await client.GetAsync($"/api/campaigns/{campaign.Id}/playback-reports?page=1&pageSize=10");
 
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-        var reports = await listResponse.Content.ReadFromJsonAsync<List<PlaybackReportDto>>();
+        var reports = await listResponse.Content.ReadFromJsonAsync<PagedResult<PlaybackReportDto>>();
         Assert.NotNull(reports);
-        Assert.Contains(reports!, report => report.Id == submitted!.Id);
+        Assert.Equal(1, reports!.Items.Count);
+        Assert.Equal(1, reports.TotalItems);
+        Assert.Equal(1, reports.TotalPages);
+        Assert.Contains(reports.Items, report => report.Id == submitted!.Id);
     }
 
     [Fact]
-    public async Task ListAllPlaybackReports_ReturnsSubmittedReport()
+    public async Task ListAllPlaybackReports_ReturnsPagedResult()
     {
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -246,12 +253,25 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         var submitted = await postResponse.Content.ReadFromJsonAsync<PlaybackReportDto>();
         Assert.NotNull(submitted);
 
-        var listResponse = await client.GetAsync("/api/playback-reports");
+        var listResponse = await client.GetAsync("/api/playback-reports?page=1&pageSize=10");
 
         Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
-        var reports = await listResponse.Content.ReadFromJsonAsync<List<PlaybackReportDto>>();
+        var reports = await listResponse.Content.ReadFromJsonAsync<PagedResult<PlaybackReportDto>>();
         Assert.NotNull(reports);
-        Assert.Contains(reports!, report => report.Id == submitted!.Id);
+        Assert.Equal(1, reports!.Items.Count);
+        Assert.Equal(1, reports.TotalItems);
+        Assert.Equal(1, reports.TotalPages);
+        Assert.Contains(reports.Items, report => report.Id == submitted!.Id);
+    }
+
+    [Fact]
+    public async Task PlaybackReportLists_RejectInvalidPagination()
+    {
+        var client = CreateClient();
+
+        var response = await client.GetAsync("/api/playback-reports?page=0");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private (HttpClient Client, WebApplicationFactory<Program> Factory) CreateClientWithFactory()

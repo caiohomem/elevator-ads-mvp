@@ -1,3 +1,4 @@
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
@@ -19,6 +20,14 @@ public sealed class ScreenService
     {
         var screens = await _screenRepository.GetAllAsync();
         return screens.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<ScreenDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _screenRepository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<ScreenDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     public async Task<ScreenDto?> GetByIdAsync(Guid id)

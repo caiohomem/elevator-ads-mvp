@@ -1,4 +1,5 @@
 using ElevatorAds.Tests.Infrastructure;
+using ElevatorAds.Domain.Common;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -39,18 +40,45 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task GetCreatives_ReturnsAll()
+    public async Task GetCreatives_ReturnsPagedResult_AndSupportsFiltering()
     {
         var client = CreateClient();
-        var created = await CreateCreativeAsync(client);
+        var alpha = await CreateCreativeAsync(client, "Alpha Promo");
+        var beta = await CreateCreativeAsync(client, "Beta Promo");
+        var gamma = await CreateCreativeAsync(client, "Gamma Promo");
+        await client.PostAsync($"/api/creatives/{beta.Id}/submit-for-review", null);
+        await client.PostAsync($"/api/creatives/{beta.Id}/approve", null);
 
-        var response = await client.GetAsync("/api/creatives");
+        var pageResponse = await client.GetAsync("/api/creatives?page=1&pageSize=2");
+        var sortedResponse = await client.GetAsync("/api/creatives?sortBy=name&sortDirection=asc");
+        var searchedResponse = await client.GetAsync("/api/creatives?search=gamma");
+        var approvedResponse = await client.GetAsync("/api/creatives?status=Approved");
+        var invalidPageSizeResponse = await client.GetAsync("/api/creatives?pageSize=101");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, pageResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, sortedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, searchedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, approvedResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidPageSizeResponse.StatusCode);
 
-        var creatives = await response.Content.ReadFromJsonAsync<List<CreativeDto>>();
-        Assert.NotNull(creatives);
-        Assert.Contains(creatives!, creative => creative.Id == created.Id);
+        var page = await pageResponse.Content.ReadFromJsonAsync<PagedResult<CreativeDto>>();
+        var sorted = await sortedResponse.Content.ReadFromJsonAsync<PagedResult<CreativeDto>>();
+        var searched = await searchedResponse.Content.ReadFromJsonAsync<PagedResult<CreativeDto>>();
+        var approved = await approvedResponse.Content.ReadFromJsonAsync<PagedResult<CreativeDto>>();
+
+        Assert.NotNull(page);
+        Assert.NotNull(sorted);
+        Assert.NotNull(searched);
+        Assert.NotNull(approved);
+        Assert.Equal(2, page!.Items.Count);
+        Assert.Equal(3, page.TotalItems);
+        Assert.Equal(2, page.TotalPages);
+        Assert.Equal("Alpha Promo", sorted!.Items[0].Name);
+        Assert.Single(searched!.Items);
+        Assert.Equal(gamma.Id, searched.Items[0].Id);
+        Assert.Single(approved!.Items);
+        Assert.Equal(beta.Id, approved.Items[0].Id);
+        Assert.Contains(page.Items, item => item.Id == beta.Id);
     }
 
     [Fact]
@@ -208,12 +236,12 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
         return advertiser!;
     }
 
-    private async Task<CreativeDto> CreateCreativeAsync(HttpClient client)
+    private async Task<CreativeDto> CreateCreativeAsync(HttpClient client, string? name = null)
     {
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCreativeRequest(
             advertiser.Id,
-            "Lobby Promo",
+            name ?? "Lobby Promo",
             "https://cdn.example.com/creative.jpg",
             "Image",
             15);

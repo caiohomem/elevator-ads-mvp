@@ -1,3 +1,4 @@
+using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
@@ -73,16 +74,40 @@ public sealed class ProofOfPlayService
         return events.Select(Map).ToList();
     }
 
+    public async Task<PagedResult<PlaybackReportDto>> GetPagedAsync(PagedQuery query)
+    {
+        var (items, totalCount) = await _proofOfPlayRepository.GetPagedAsync(query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<PlaybackReportDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
+    }
+
     public async Task<IReadOnlyList<PlaybackReportDto>> GetByScreenAsync(Guid screenId)
     {
         var events = await _proofOfPlayRepository.GetByScreenIdAsync(screenId);
         return events.Select(Map).ToList();
     }
 
+    public async Task<PagedResult<PlaybackReportDto>> GetPagedByScreenAsync(Guid screenId, PagedQuery query)
+    {
+        var (items, totalCount) = await _proofOfPlayRepository.GetPagedByScreenIdAsync(screenId, query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<PlaybackReportDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
+    }
+
     public async Task<IReadOnlyList<PlaybackReportDto>> GetByCampaignAsync(Guid campaignId)
     {
         var events = await _proofOfPlayRepository.GetByCampaignIdAsync(campaignId);
         return events.Select(Map).ToList();
+    }
+
+    public async Task<PagedResult<PlaybackReportDto>> GetPagedByCampaignAsync(Guid campaignId, PagedQuery query)
+    {
+        var (items, totalCount) = await _proofOfPlayRepository.GetPagedByCampaignIdAsync(campaignId, query);
+        var mappedItems = items.Select(Map).ToList();
+        var totalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize);
+        return new PagedResult<PlaybackReportDto>(mappedItems, query.Page, query.PageSize, totalCount, totalPages);
     }
 
     private static PlaybackReportDto Map(ProofOfPlayEvent proofOfPlay) =>
