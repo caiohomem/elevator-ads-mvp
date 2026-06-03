@@ -13,7 +13,9 @@ using ElevatorAds.Application.Playlists;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
+using ElevatorAds.Infrastructure.Persistence;
 using ElevatorAds.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "Frontend";
@@ -54,27 +56,31 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-builder.Services.AddSingleton<IBuildingRepository, InMemoryBuildingRepository>();
-builder.Services.AddSingleton<BuildingService>();
-builder.Services.AddSingleton<IScreenRepository, InMemoryScreenRepository>();
-builder.Services.AddSingleton<ScreenService>();
-builder.Services.AddSingleton<IAdvertiserRepository, InMemoryAdvertiserRepository>();
-builder.Services.AddSingleton<AdvertiserService>();
-builder.Services.AddSingleton<ICreativeRepository, InMemoryCreativeRepository>();
-builder.Services.AddSingleton<CreativeService>();
-builder.Services.AddSingleton<ICampaignRepository, InMemoryCampaignRepository>();
-builder.Services.AddSingleton<CampaignService>();
-builder.Services.AddSingleton<ICampaignCreativeRepository, InMemoryCampaignCreativeRepository>();
-builder.Services.AddSingleton<CampaignCreativeService>();
-builder.Services.AddSingleton<ICampaignDeliveryConstraintsRepository, InMemoryCampaignDeliveryConstraintsRepository>();
-builder.Services.AddSingleton<CampaignDeliveryConstraintsService>();
-builder.Services.AddSingleton<IDailyPlaylistRepository, InMemoryDailyPlaylistRepository>();
-builder.Services.AddSingleton<CampaignEligibilityService>();
-builder.Services.AddSingleton<PlaylistGenerationService>();
-builder.Services.AddSingleton<PlaylistDownloadService>();
-builder.Services.AddSingleton<IProofOfPlayEventRepository, InMemoryProofOfPlayEventRepository>();
-builder.Services.AddSingleton<ProofOfPlayService>();
-builder.Services.AddSingleton<DeliveryReportService>();
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+
+builder.Services.AddScoped<IBuildingRepository, EfBuildingRepository>();
+builder.Services.AddScoped<BuildingService>();
+builder.Services.AddScoped<IScreenRepository, EfScreenRepository>();
+builder.Services.AddScoped<ScreenService>();
+builder.Services.AddScoped<IAdvertiserRepository, EfAdvertiserRepository>();
+builder.Services.AddScoped<AdvertiserService>();
+builder.Services.AddScoped<ICreativeRepository, EfCreativeRepository>();
+builder.Services.AddScoped<CreativeService>();
+builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
+builder.Services.AddScoped<CampaignService>();
+builder.Services.AddScoped<ICampaignCreativeRepository, EfCampaignCreativeRepository>();
+builder.Services.AddScoped<CampaignCreativeService>();
+builder.Services.AddScoped<ICampaignDeliveryConstraintsRepository, EfCampaignDeliveryConstraintsRepository>();
+builder.Services.AddScoped<CampaignDeliveryConstraintsService>();
+builder.Services.AddScoped<IDailyPlaylistRepository, EfDailyPlaylistRepository>();
+builder.Services.AddScoped<CampaignEligibilityService>();
+builder.Services.AddScoped<PlaylistGenerationService>();
+builder.Services.AddScoped<PlaylistDownloadService>();
+builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventRepository>();
+builder.Services.AddScoped<ProofOfPlayService>();
+builder.Services.AddScoped<DeliveryReportService>();
 
 var app = builder.Build();
 

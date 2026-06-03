@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Playlists;
 
-public class PlaylistEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public PlaylistEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public PlaylistEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task GeneratePlaylists_ReturnsGeneratedPlaylist()

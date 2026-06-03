@@ -2,7 +2,7 @@
 
 Elevator Ads MVP is a programmatic DOOH advertising platform for elevator screens.
 
-This repository currently contains the initial full-stack scaffold and the first inventory feature: Building management. Database integration, authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
+This repository contains the full-stack scaffold and the initial feature set: Building management, Screen management, Advertisers, Creatives, Campaigns, Campaign Delivery Constraints, Daily Playlist generation, Playlist Download, Proof-of-Play reporting, and Delivery Reports. Database integration uses PostgreSQL with Entity Framework Core. Authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
 
 The MVP delivery model is scheduled DOOH playlist delivery. Screens and players download a daily playlist, execute the same programmed sequence throughout the day, and report playback after execution rather than requesting ads in real time.
 
@@ -10,19 +10,54 @@ The MVP delivery model is scheduled DOOH playlist delivery. Screens and players 
 
 - Backend: C# / .NET, ASP.NET Core Web API
 - Frontend: Next.js, TypeScript
-- Future database: PostgreSQL with Entity Framework Core
+- Database: PostgreSQL with Entity Framework Core
 - Future deployment targets: Render, Vercel, Neon PostgreSQL
 
 ## Local Development
 
 ### Backend
 
-```bash
-cd backend
-dotnet build
-dotnet test
-dotnet run --project ElevatorAds.Api
-```
+The backend uses PostgreSQL via Entity Framework Core. Before running the API for the first time, provision a local database and apply the migrations.
+
+1. Install PostgreSQL 15+ and ensure `psql` is available.
+2. Create a development database (default name: `elevator_ads_dev`):
+
+   ```bash
+   createdb elevator_ads_dev
+   ```
+
+   The `appsettings.Development.json` file in `backend/ElevatorAds.Api` includes a placeholder connection string that points at `Host=localhost;Port=5432;Database=elevator_ads_dev;Username=postgres;Password=postgres`. Override it for your local environment using one of the following:
+
+   - Environment variable (highest priority, recommended for local secrets):
+
+     ```bash
+     export ConnectionStrings__Default="Host=localhost;Port=5432;Database=elevator_ads_dev;Username=postgres;Password=YOUR_PASSWORD"
+     ```
+
+   - .NET user-secrets for the API project:
+
+     ```bash
+     cd backend/ElevatorAds.Api
+     dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=elevator_ads_dev;Username=postgres;Password=YOUR_PASSWORD"
+     ```
+
+   Do not commit real credentials.
+
+3. Apply the EF Core migrations:
+
+   ```bash
+   cd backend
+   dotnet ef database update --project ElevatorAds.Infrastructure --startup-project ElevatorAds.Api
+   ```
+
+4. Build, test, and run:
+
+   ```bash
+   cd backend
+   dotnet build
+   dotnet test
+   dotnet run --project ElevatorAds.Api
+   ```
 
 The API listens on `http://localhost:5000` in local development.
 

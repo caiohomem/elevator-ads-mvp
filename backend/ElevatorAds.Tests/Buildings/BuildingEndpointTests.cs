@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Buildings;
 
-public class BuildingEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public BuildingEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public BuildingEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task PostBuilding_CreatesBuilding()

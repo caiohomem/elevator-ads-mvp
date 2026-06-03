@@ -1,3 +1,4 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Campaigns;
 
-public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -15,7 +16,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<WebApplica
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public CampaignDeliveryConstraintsEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public CampaignDeliveryConstraintsEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task GetDeliveryConstraints_WhenNoneExist_ReturnsNotFound()

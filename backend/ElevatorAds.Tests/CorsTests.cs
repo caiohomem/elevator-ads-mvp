@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests;
 
-public class CorsTests : IClassFixture<WebApplicationFactory<Program>>
+public class CorsTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public CorsTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public CorsTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task GetHealth_InDevelopment_AllowsConfiguredLocalFrontendOrigin()

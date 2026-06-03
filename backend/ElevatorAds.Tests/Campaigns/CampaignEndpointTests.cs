@@ -1,14 +1,15 @@
+using ElevatorAds.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace ElevatorAds.Tests.Campaigns;
 
-public class CampaignEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public CampaignEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
+    public CampaignEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task CreateCampaign_ReturnsCreated()

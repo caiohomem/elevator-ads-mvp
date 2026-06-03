@@ -4,6 +4,7 @@ using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
 using ElevatorAds.Infrastructure.Repositories;
+using ElevatorAds.Tests.Infrastructure;
 
 namespace ElevatorAds.Tests.Playlists;
 
@@ -176,13 +177,14 @@ public class PlaylistGenerationTests
 
     private static async Task<TestContext> CreateContextAsync()
     {
-        var buildingRepository = new InMemoryBuildingRepository();
-        var screenRepository = new InMemoryScreenRepository();
-        var campaignRepository = new InMemoryCampaignRepository();
-        var campaignCreativeRepository = new InMemoryCampaignCreativeRepository();
-        var creativeRepository = new InMemoryCreativeRepository();
-        var constraintsRepository = new InMemoryCampaignDeliveryConstraintsRepository();
-        var playlistRepository = new InMemoryDailyPlaylistRepository();
+        var fixture = new PersistenceTestFixture();
+        var buildingRepository = new EfBuildingRepository(fixture.Context);
+        var screenRepository = new EfScreenRepository(fixture.Context);
+        var campaignRepository = new EfCampaignRepository(fixture.Context);
+        var campaignCreativeRepository = new EfCampaignCreativeRepository(fixture.Context);
+        var creativeRepository = new EfCreativeRepository(fixture.Context);
+        var constraintsRepository = new EfCampaignDeliveryConstraintsRepository(fixture.Context);
+        var playlistRepository = new EfDailyPlaylistRepository(fixture.Context);
 
         var building = new Building
         {
@@ -232,15 +234,17 @@ public class PlaylistGenerationTests
             creativeRepository,
             constraintsRepository,
             building,
-            screen);
+            screen,
+            fixture);
     }
 
-    private sealed class TestContext
+    private sealed class TestContext : IDisposable
     {
         private readonly ICampaignRepository _campaignRepository;
         private readonly ICampaignCreativeRepository _campaignCreativeRepository;
         private readonly ICreativeRepository _creativeRepository;
         private readonly ICampaignDeliveryConstraintsRepository _constraintsRepository;
+        private readonly PersistenceTestFixture _fixture;
 
         public TestContext(
             PlaylistGenerationService service,
@@ -250,7 +254,8 @@ public class PlaylistGenerationTests
             ICreativeRepository creativeRepository,
             ICampaignDeliveryConstraintsRepository constraintsRepository,
             Building building,
-            Screen screen)
+            Screen screen,
+            PersistenceTestFixture fixture)
         {
             Service = service;
             PlaylistRepository = playlistRepository;
@@ -260,7 +265,10 @@ public class PlaylistGenerationTests
             _constraintsRepository = constraintsRepository;
             Building = building;
             Screen = screen;
+            _fixture = fixture;
         }
+
+        public void Dispose() => _fixture.Dispose();
 
         public PlaylistGenerationService Service { get; }
         public IDailyPlaylistRepository PlaylistRepository { get; }
