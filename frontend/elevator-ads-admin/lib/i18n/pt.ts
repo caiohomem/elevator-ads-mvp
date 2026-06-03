@@ -36,6 +36,18 @@ export const pt: TranslationDictionary = {
     currentLanguage: "Idioma atual",
     updatedForMvp: "Preparado para entrega diaria de playlists do MVP",
   },
+  pagination: {
+    showing: "Mostrando",
+    of: "de",
+    prev: "Anterior",
+    next: "Proxima",
+    pageSize: "Tamanho da pagina",
+  },
+  filters: {
+    search: "Pesquisar",
+    status: "Status",
+    all: "Todos",
+  },
   dashboard: {
     title: "Painel operacional",
     description:

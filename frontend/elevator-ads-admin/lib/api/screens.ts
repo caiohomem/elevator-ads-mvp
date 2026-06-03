@@ -1,5 +1,13 @@
-import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
-import type { ApiBuilding, ApiDailyPlaylist, ApiScreen, Screen, ScreenStatus } from "@/lib/types";
+import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import type {
+  ApiBuilding,
+  ApiDailyPlaylist,
+  ApiScreen,
+  PagedQuery,
+  PagedResult,
+  Screen,
+  ScreenStatus,
+} from "@/lib/types";
 
 const screensEndpoint = "/api/screens";
 const buildingsEndpoint = "/api/buildings";
@@ -66,6 +74,12 @@ export async function getScreens(): Promise<ApiResult<Screen[]>> {
 
 export async function getScreensList(): Promise<ApiResult<ApiScreen[]>> {
   return apiFetch<ApiScreen[]>(screensEndpoint);
+}
+
+export async function getScreensPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiScreen>>> {
+  return apiFetchPaged<ApiScreen>(screensEndpoint, query);
 }
 
 function mapScreen(

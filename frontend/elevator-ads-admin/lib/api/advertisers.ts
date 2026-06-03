@@ -1,5 +1,12 @@
-import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
-import type { Advertiser, ApiAdvertiser, ApiCampaign, EntityStatus } from "@/lib/types";
+import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import type {
+  Advertiser,
+  ApiAdvertiser,
+  ApiCampaign,
+  EntityStatus,
+  PagedQuery,
+  PagedResult,
+} from "@/lib/types";
 
 const advertisersEndpoint = "/api/advertisers";
 const campaignsEndpoint = "/api/campaigns";
@@ -56,6 +63,12 @@ export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
 
 export async function getAdvertisersList(): Promise<ApiResult<ApiAdvertiser[]>> {
   return apiFetch<ApiAdvertiser[]>(advertisersEndpoint);
+}
+
+export async function getAdvertisersPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiAdvertiser>>> {
+  return apiFetchPaged<ApiAdvertiser>(advertisersEndpoint, query);
 }
 
 function mapAdvertiser(advertiser: ApiAdvertiser, campaignCounts: Map<string, number>): Advertiser {

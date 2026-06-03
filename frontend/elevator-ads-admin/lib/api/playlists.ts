@@ -1,4 +1,4 @@
-import { apiFetch, apiMutate, type ApiResource, type ApiResult, withMockFallback } from "@/lib/api/client";
+import { apiFetch, apiFetchPaged, apiMutate, type ApiResource, type ApiResult, withMockFallback } from "@/lib/api/client";
 import { getCampaignsList } from "@/lib/api/campaigns";
 import { dailyPlaylists as mockPlaylists } from "@/lib/mockData";
 import type {
@@ -10,6 +10,8 @@ import type {
   ApiScreen,
   DailyPlaylist,
   DailyPlaylistItem,
+  PagedQuery,
+  PagedResult,
   PlaylistStatus,
 } from "@/lib/types";
 
@@ -42,6 +44,12 @@ export async function getDailyPlaylists(): Promise<ApiResource<DailyPlaylist[]>>
 
 export async function getDailyPlaylistsList(): Promise<ApiResult<ApiDailyPlaylist[]>> {
   return apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint);
+}
+
+export async function getDailyPlaylistsPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiDailyPlaylist>>> {
+  return apiFetchPaged<ApiDailyPlaylist>(playlistsEndpoint, query);
 }
 
 export async function getDailyPlaylistById(id: string): Promise<ApiResult<DailyPlaylist>> {

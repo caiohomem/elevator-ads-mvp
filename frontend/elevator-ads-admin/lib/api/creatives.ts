@@ -1,5 +1,12 @@
-import { apiFetch, apiMutate, type ApiResult } from "@/lib/api/client";
-import type { ApiAdvertiser, ApiCreative, ApprovalStatus, Creative } from "@/lib/types";
+import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import type {
+  ApiAdvertiser,
+  ApiCreative,
+  ApprovalStatus,
+  Creative,
+  PagedQuery,
+  PagedResult,
+} from "@/lib/types";
 
 const creativesEndpoint = "/api/creatives";
 const advertisersEndpoint = "/api/advertisers";
@@ -72,6 +79,12 @@ export async function getCreatives(): Promise<ApiResult<Creative[]>> {
 
 export async function getCreativesList(): Promise<ApiResult<ApiCreative[]>> {
   return apiFetch<ApiCreative[]>(creativesEndpoint);
+}
+
+export async function getCreativesPaged(
+  query: PagedQuery,
+): Promise<ApiResult<PagedResult<ApiCreative>>> {
+  return apiFetchPaged<ApiCreative>(creativesEndpoint, query);
 }
 
 function mapCreative(creative: ApiCreative, advertisersById: Map<string, string>): Creative {

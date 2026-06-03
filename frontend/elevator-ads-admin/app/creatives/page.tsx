@@ -7,26 +7,27 @@ import { DataTable, type TableColumn } from "@/components/DataTable";
 import { ErrorState } from "@/components/ErrorState";
 import { LoadingState } from "@/components/LoadingState";
 import { Modal } from "@/components/Modal";
+import { PaginationControls } from "@/components/PaginationControls";
 import { StatusBadge } from "@/components/StatusBadge";
+import { TableFilters } from "@/components/TableFilters";
 import {
   approveCreative,
   getAdvertisersList,
-  getCreatives,
-  getCreativesList,
+  getCreativesPaged,
   rejectCreative,
   submitCreativeForReview,
 } from "@/lib/api";
 import { useApiData } from "@/lib/api/useApiData";
+import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
-import type { ApiCreative, Creative } from "@/lib/types";
+import type { ApiCreative } from "@/lib/types";
 
 type StatusAction = "submit" | "approve" | "reject";
 
 export default function CreativesPage() {
   const { dictionary } = useTranslation();
   const forms = dictionary.forms;
-  const state = useApiData(getCreatives);
-  const rawState = useApiData(getCreativesList);
+  const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getCreativesPaged, "creatives");
   const advertisersState = useApiData(getAdvertisersList);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiCreative | null>(null);
@@ -43,20 +44,18 @@ export default function CreativesPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (raw: ApiCreative) => {
-    setEditing(raw);
+  const openEdit = (creative: ApiCreative) => {
+    setEditing(creative);
     setModalOpen(true);
   };
 
   const handleSuccess = () => {
     closeModal();
     state.retry();
-    rawState.retry();
   };
 
   const refresh = () => {
     state.retry();
-    rawState.retry();
   };
 
   const runStatusAction = async (id: string, action: StatusAction) => {
@@ -79,9 +78,9 @@ export default function CreativesPage() {
     refresh();
   };
 
-  const columns: TableColumn<Creative>[] = [
+  const columns: TableColumn<ApiCreative>[] = [
     { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
-    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserName },
+    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserId },
     { key: "mediaType", header: "Media type", render: (row) => row.mediaType },
     {
       key: "duration",
@@ -98,7 +97,6 @@ export default function CreativesPage() {
       header: "",
       className: "text-right",
       render: (row) => {
-        const raw = rawState.status === "ok" ? rawState.data.find((c) => c.id === row.id) : undefined;
         const isActing = actionInFlight?.id === row.id;
         return (
           <div className="flex flex-wrap justify-end gap-2">
@@ -106,7 +104,7 @@ export default function CreativesPage() {
               <button
                 type="button"
                 onClick={() => runStatusAction(row.id, "submit")}
-                disabled={!raw || Boolean(actionInFlight)}
+                disabled={Boolean(actionInFlight)}
                 className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
               >
                 {isActing && actionInFlight?.action === "submit" ? "..." : forms.submitForReview}
@@ -117,7 +115,7 @@ export default function CreativesPage() {
                 <button
                   type="button"
                   onClick={() => runStatusAction(row.id, "approve")}
-                  disabled={!raw || Boolean(actionInFlight)}
+                  disabled={Boolean(actionInFlight)}
                   className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-emerald-300"
                 >
                   {isActing && actionInFlight?.action === "approve" ? "..." : forms.approve}
@@ -125,7 +123,7 @@ export default function CreativesPage() {
                 <button
                   type="button"
                   onClick={() => runStatusAction(row.id, "reject")}
-                  disabled={!raw || Boolean(actionInFlight)}
+                  disabled={Boolean(actionInFlight)}
                   className="rounded-full border border-rose-500/40 bg-rose-500/10 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-rose-300"
                 >
                   {isActing && actionInFlight?.action === "reject" ? "..." : forms.reject}
@@ -135,11 +133,8 @@ export default function CreativesPage() {
             <button
               type="button"
               onClick={() => {
-                if (raw) {
-                  openEdit(raw);
-                }
+                openEdit(row);
               }}
-              disabled={!raw}
               className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
             >
               {forms.edit}
@@ -163,6 +158,18 @@ export default function CreativesPage() {
         </button>
       }
     >
+      <TableFilters
+        search={query.search ?? ""}
+        onSearchChange={setSearch}
+        status={query.status}
+        onStatusChange={setStatus}
+        statusOptions={[
+          { value: "Draft", label: "Draft" },
+          { value: "PendingReview", label: "Pending review" },
+          { value: "Approved", label: "Approved" },
+          { value: "Rejected", label: "Rejected" },
+        ]}
+      />
       {actionError ? (
         <div
           className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-700 dark:text-rose-300"
@@ -173,7 +180,19 @@ export default function CreativesPage() {
       ) : null}
       {state.status === "loading" ? <LoadingState /> : null}
       {state.status === "error" ? <ErrorState message={state.message} onRetry={state.retry} /> : null}
-      {state.status === "ok" ? <DataTable columns={columns} rows={state.data} getRowKey={(row) => row.id} /> : null}
+      {state.status === "ok" ? (
+        <>
+          <DataTable columns={columns} rows={state.data.items} getRowKey={(row) => row.id} />
+          <PaginationControls
+            page={state.data.page}
+            totalPages={state.data.totalPages}
+            totalItems={state.data.totalItems}
+            pageSize={state.data.pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </>
+      ) : null}
 
       <Modal
         open={modalOpen}
