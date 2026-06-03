@@ -34,6 +34,12 @@ export {
   getDailyPlaylistsList,
   publishPlaylist,
 } from "@/lib/api/playlists";
+export {
+  getProofOfPlayEvents,
+  getReportsCampaigns,
+  getReportsOverview,
+  getReportsScreens,
+} from "@/lib/api/reports";
 export { createScreen, getScreens, getScreensList, updateScreen } from "@/lib/api/screens";
 
 const withLatency = async <T>(data: T): Promise<T> => Promise.resolve(data);
