@@ -25,7 +25,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__Postgres: Host=postgres;Port=5432;Database=elevator_ads;Username=elevator_ads;Password=elevator_ads
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=elevator_ads;Username=elevator_ads;Password=elevator_ads
     ports:
       - "8081:8080"
     depends_on:
