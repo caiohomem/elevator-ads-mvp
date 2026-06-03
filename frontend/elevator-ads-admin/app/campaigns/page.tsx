@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CampaignCreativePanel } from "@/components/CampaignCreativePanel";
+import { CampaignDeliveryConstraintsPanel } from "@/components/CampaignDeliveryConstraintsPanel";
 import { CampaignForm } from "@/components/CampaignForm";
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
@@ -25,6 +26,7 @@ export default function CampaignsPage() {
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiCampaign | null>(null);
   const [assignModal, setAssignModal] = useState<{ campaignId: string; advertiserId: string } | null>(null);
+  const [constraintsCampaignId, setConstraintsCampaignId] = useState<string | null>(null);
 
   const closeCampaignModal = () => {
     setCampaignModalOpen(false);
@@ -49,6 +51,11 @@ export default function CampaignsPage() {
 
   const closeAssignModal = () => {
     setAssignModal(null);
+    state.retry();
+  };
+
+  const closeConstraintsModal = () => {
+    setConstraintsCampaignId(null);
     state.retry();
   };
 
@@ -93,6 +100,18 @@ export default function CampaignsPage() {
               className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
             >
               {forms.manageCreatives}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (raw) {
+                  setConstraintsCampaignId(row.id);
+                }
+              }}
+              disabled={!raw}
+              className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
+            >
+              {forms.deliveryConstraints.edit}
             </button>
             <button
               type="button"
@@ -147,6 +166,13 @@ export default function CampaignsPage() {
           campaignId={assignModal.campaignId}
           advertiserId={assignModal.advertiserId}
           onClose={closeAssignModal}
+        />
+      ) : null}
+
+      {constraintsCampaignId ? (
+        <CampaignDeliveryConstraintsPanel
+          campaignId={constraintsCampaignId}
+          onClose={closeConstraintsModal}
         />
       ) : null}
     </ClientPageFrame>

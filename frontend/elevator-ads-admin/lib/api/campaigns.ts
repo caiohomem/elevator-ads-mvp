@@ -26,6 +26,34 @@ type ApiDeliveryConstraints = {
   updatedAt: string;
 };
 
+export type { ApiDeliveryConstraints };
+
+export type UpsertDeliveryConstraintsPayload = {
+  cities: string[];
+  buildingTypes: string[];
+  screenOrientations: string[];
+  daysOfWeek: string[];
+  startTime: string | null;
+  endTime: string | null;
+};
+
+export async function getDeliveryConstraints(
+  campaignId: string,
+): Promise<ApiResult<ApiDeliveryConstraints>> {
+  return apiFetch<ApiDeliveryConstraints>(`${campaignsEndpoint}/${campaignId}/delivery-constraints`);
+}
+
+export async function upsertDeliveryConstraints(
+  campaignId: string,
+  payload: UpsertDeliveryConstraintsPayload,
+): Promise<ApiResult<ApiDeliveryConstraints>> {
+  return apiMutate<UpsertDeliveryConstraintsPayload, ApiDeliveryConstraints>(
+    `${campaignsEndpoint}/${campaignId}/delivery-constraints`,
+    "PUT",
+    payload,
+  );
+}
+
 type CampaignExtras = {
   id: string;
   creatives: number;
