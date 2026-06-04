@@ -1,3 +1,4 @@
+import { clearRole, clearToken, getToken } from "@/lib/auth/storage";
 import type { PagedQuery, PagedResult } from "@/lib/types";
 
 export interface ApiError {
@@ -28,12 +29,11 @@ export async function apiFetch<T>(path: string): Promise<ApiResult<T>> {
 
   try {
     const response = await fetch(requestUrl, {
-      headers: {
-        Accept: "application/json",
-      },
+      headers: createHeaders(),
     });
 
     if (!response.ok) {
+      handleAuthRedirect(response.status);
       return {
         ok: false,
         status: response.status,
@@ -92,14 +92,12 @@ export async function apiMutate<TBody, TResponse>(
   try {
     const response = await fetch(requestUrl, {
       method,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
+      headers: createHeaders(true),
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
+      handleAuthRedirect(response.status);
       return {
         ok: false,
         status: response.status,
@@ -123,12 +121,11 @@ export async function apiDelete(path: string): Promise<ApiResult<void>> {
   try {
     const response = await fetch(requestUrl, {
       method: "DELETE",
-      headers: {
-        Accept: "application/json",
-      },
+      headers: createHeaders(),
     });
 
     if (!response.ok) {
+      handleAuthRedirect(response.status);
       return {
         ok: false,
         status: response.status,
@@ -160,6 +157,41 @@ async function readErrorMessage(response: Response) {
   }
 
   return (await response.text().catch(() => "")) || response.statusText;
+}
+
+function createHeaders(includeJsonContentType = false): HeadersInit {
+  const headers: HeadersInit = {
+    Accept: "application/json",
+  };
+
+  if (includeJsonContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const token = getToken();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+function handleAuthRedirect(status: number) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (status === 401) {
+    clearToken();
+    clearRole();
+    window.location.href = "/login";
+    return;
+  }
+
+  if (status === 403) {
+    window.location.href = "/forbidden";
+  }
 }
 
 function buildRequestUrl(path: string) {
