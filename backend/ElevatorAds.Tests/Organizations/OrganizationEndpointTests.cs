@@ -109,7 +109,8 @@ public class OrganizationEndpointTests
         Assert.NotNull(paged);
         Assert.Equal(2, paged!.PageSize);
         Assert.Equal(2, paged.Items.Count);
-        Assert.Equal(3, paged.TotalItems);
+        // 3 created by this test + 1 default org seeded by DatabaseSeeder on startup
+        Assert.Equal(4, paged.TotalItems);
     }
 
     [Fact]
