@@ -1,5 +1,6 @@
 using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Buildings.Dtos;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
 
@@ -7,13 +8,27 @@ namespace ElevatorAds.Application.Buildings;
 
 public sealed class BuildingService
 {
-    private readonly IBuildingRepository _repository;
+    private const string DefaultOrganizationName = "Default Organization";
+    private const string DefaultOrganizationSlug = "default";
 
-    public BuildingService(IBuildingRepository repository) => _repository = repository;
+    private readonly IBuildingRepository _repository;
+    private readonly OrganizationService _organizationService;
+
+    public BuildingService(IBuildingRepository repository, OrganizationService organizationService)
+    {
+        _repository = repository;
+        _organizationService = organizationService;
+    }
 
     public async Task<IReadOnlyList<BuildingDto>> GetAllAsync()
     {
         var buildings = await _repository.GetAllAsync();
+        return buildings.Select(Map).ToList();
+    }
+
+    public async Task<IReadOnlyList<BuildingDto>> GetByOrganizationAsync(Guid organizationId)
+    {
+        var buildings = await _repository.GetByOrganizationAsync(organizationId);
         return buildings.Select(Map).ToList();
     }
 
@@ -39,10 +54,13 @@ public sealed class BuildingService
             return ServiceResult<BuildingDto>.Failure(error);
         }
 
+        var organizationId = await _organizationService.EnsureDefaultOrganizationIdAsync(DefaultOrganizationName, DefaultOrganizationSlug);
+
         var now = DateTime.UtcNow;
         var building = new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = organizationId,
             Name = request.Name.Trim(),
             Address = request.Address.Trim(),
             City = request.City.Trim(),
@@ -128,7 +146,6 @@ public sealed class BuildingService
     public sealed record ServiceResult<T>(bool IsSuccess, string? Error, T? Value)
     {
         public static ServiceResult<T> Success(T? value) => new(true, null, value);
-
         public static ServiceResult<T> Failure(string error) => new(false, error, default);
     }
 }

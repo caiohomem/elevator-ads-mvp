@@ -1,6 +1,7 @@
 using System.Net.Mail;
 using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Advertisers.Dtos;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
 
@@ -8,9 +9,17 @@ namespace ElevatorAds.Application.Advertisers;
 
 public sealed class AdvertiserService
 {
-    private readonly IAdvertiserRepository _repository;
+    private const string DefaultOrganizationName = "Default Organization";
+    private const string DefaultOrganizationSlug = "default";
 
-    public AdvertiserService(IAdvertiserRepository repository) => _repository = repository;
+    private readonly IAdvertiserRepository _repository;
+    private readonly OrganizationService _organizationService;
+
+    public AdvertiserService(IAdvertiserRepository repository, OrganizationService organizationService)
+    {
+        _repository = repository;
+        _organizationService = organizationService;
+    }
 
     public async Task<IReadOnlyList<AdvertiserDto>> GetAllAsync()
     {
@@ -40,10 +49,13 @@ public sealed class AdvertiserService
             return ServiceResult<AdvertiserDto>.Failure(error);
         }
 
+        var organizationId = await _organizationService.EnsureDefaultOrganizationIdAsync(DefaultOrganizationName, DefaultOrganizationSlug);
+
         var now = DateTime.UtcNow;
         var advertiser = new Advertiser
         {
             Id = Guid.NewGuid(),
+            OrganizationId = organizationId,
             Name = request.Name.Trim(),
             LegalName = request.LegalName.Trim(),
             TaxId = request.TaxId.Trim(),
@@ -126,7 +138,6 @@ public sealed class AdvertiserService
     public sealed record ServiceResult<T>(bool IsSuccess, string? Error, T? Value)
     {
         public static ServiceResult<T> Success(T? value) => new(true, null, value);
-
         public static ServiceResult<T> Failure(string error) => new(false, error, default);
     }
 }

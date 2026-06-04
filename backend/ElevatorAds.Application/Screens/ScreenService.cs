@@ -1,4 +1,5 @@
 using ElevatorAds.Domain.Common;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Interfaces;
@@ -7,13 +8,21 @@ namespace ElevatorAds.Application.Screens;
 
 public sealed class ScreenService
 {
+    private const string DefaultOrganizationName = "Default Organization";
+    private const string DefaultOrganizationSlug = "default";
+
     private readonly IBuildingRepository _buildingRepository;
     private readonly IScreenRepository _screenRepository;
+    private readonly OrganizationService _organizationService;
 
-    public ScreenService(IScreenRepository screenRepository, IBuildingRepository buildingRepository)
+    public ScreenService(
+        IScreenRepository screenRepository,
+        IBuildingRepository buildingRepository,
+        OrganizationService organizationService)
     {
         _screenRepository = screenRepository;
         _buildingRepository = buildingRepository;
+        _organizationService = organizationService;
     }
 
     public async Task<IReadOnlyList<ScreenDto>> GetAllAsync()
@@ -44,10 +53,16 @@ public sealed class ScreenService
             return ServiceResult<ScreenDto>.Failure(error);
         }
 
+        var building = await _buildingRepository.GetByIdAsync(request.BuildingId);
+        var organizationId = building is not null && building.OrganizationId != Guid.Empty
+            ? building.OrganizationId
+            : await _organizationService.EnsureDefaultOrganizationIdAsync(DefaultOrganizationName, DefaultOrganizationSlug);
+
         var now = DateTime.UtcNow;
         var screen = new Screen
         {
             Id = Guid.NewGuid(),
+            OrganizationId = organizationId,
             BuildingId = request.BuildingId,
             Name = request.Name.Trim(),
             ExternalCode = request.ExternalCode.Trim(),
@@ -145,7 +160,6 @@ public sealed class ScreenService
     public sealed record ServiceResult<T>(bool IsSuccess, string? Error, T? Value)
     {
         public static ServiceResult<T> Success(T? value) => new(true, null, value);
-
         public static ServiceResult<T> Failure(string error) => new(false, error, default);
     }
 }

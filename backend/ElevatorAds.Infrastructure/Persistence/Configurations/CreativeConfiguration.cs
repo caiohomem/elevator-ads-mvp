@@ -19,5 +19,11 @@ public sealed class CreativeConfiguration : IEntityTypeConfiguration<Creative>
         builder.Property(item => item.ApprovalStatus).HasConversion<string>().HasMaxLength(50);
         builder.Property(item => item.CreatedAt).IsRequired();
         builder.Property(item => item.UpdatedAt).IsRequired();
+
+        builder.Property(item => item.OrganizationId).IsRequired();
+        builder.HasOne(item => item.Organization)
+            .WithMany()
+            .HasForeignKey(item => item.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

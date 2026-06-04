@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<DailyPlaylistItem> DailyPlaylistItems => Set<DailyPlaylistItem>();
     public DbSet<ProofOfPlayEvent> ProofOfPlayEvents => Set<ProofOfPlayEvent>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Organization> Organizations => Set<Organization>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

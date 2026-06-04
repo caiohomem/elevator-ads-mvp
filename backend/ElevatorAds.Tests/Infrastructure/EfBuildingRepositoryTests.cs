@@ -16,6 +16,7 @@ public class EfBuildingRepositoryTests
         var building = new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "Tower One",
             Address = "Rua A",
             City = "Lisbon",
@@ -46,6 +47,7 @@ public class EfBuildingRepositoryTests
         var building = new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "Tower One",
             Address = "Rua A",
             City = "Lisbon",
@@ -79,6 +81,7 @@ public class EfBuildingRepositoryTests
         var building = new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "Tower One",
             Address = "Rua A",
             City = "Lisbon",
@@ -108,6 +111,7 @@ public class EfBuildingRepositoryTests
         await repository.AddAsync(new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "First",
             Address = "A",
             City = "X",
@@ -121,6 +125,7 @@ public class EfBuildingRepositoryTests
         await repository.AddAsync(new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "Second",
             Address = "A",
             City = "X",

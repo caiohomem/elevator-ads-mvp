@@ -5,6 +5,7 @@ namespace ElevatorAds.Domain.Entities;
 public class Campaign
 {
     public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
     public Guid AdvertiserId { get; set; }
     public string Name { get; set; } = string.Empty;
     public DateTime? StartDate { get; set; }
@@ -15,4 +16,6 @@ public class Campaign
     public decimal? MaxCpm { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public Organization? Organization { get; set; }
 }

@@ -20,5 +20,11 @@ public sealed class BuildingConfiguration : IEntityTypeConfiguration<Building>
         builder.Property(item => item.EstimatedDailyAudience).IsRequired();
         builder.Property(item => item.CreatedAt).IsRequired();
         builder.Property(item => item.UpdatedAt).IsRequired();
+
+        builder.Property(item => item.OrganizationId).IsRequired();
+        builder.HasOne(item => item.Organization)
+            .WithMany()
+            .HasForeignKey(item => item.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

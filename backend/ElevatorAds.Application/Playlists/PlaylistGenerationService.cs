@@ -170,9 +170,11 @@ public sealed class PlaylistGenerationService
 
         if (existing is null)
         {
+            var screen = await _screenRepository.GetByIdAsync(screenId);
             var playlist = new DailyPlaylist
             {
                 Id = Guid.NewGuid(),
+                OrganizationId = screen?.OrganizationId ?? Guid.Empty,
                 ScreenId = screenId,
                 Date = date,
                 Version = 1,

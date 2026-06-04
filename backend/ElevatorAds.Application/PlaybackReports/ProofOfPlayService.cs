@@ -23,7 +23,8 @@ public sealed class ProofOfPlayService
 
     public async Task<CreatePlaybackReportResult> CreateAsync(Guid screenId, CreatePlaybackReportRequest request)
     {
-        if (await _screenRepository.GetByIdAsync(screenId) is null)
+        var screen = await _screenRepository.GetByIdAsync(screenId);
+        if (screen is null)
         {
             return CreatePlaybackReportResult.NotFound();
         }
@@ -54,6 +55,7 @@ public sealed class ProofOfPlayService
         var proofOfPlay = new ProofOfPlayEvent
         {
             Id = Guid.NewGuid(),
+            OrganizationId = screen.OrganizationId,
             ScreenId = screenId,
             PlaylistId = playlist.Id,
             PlaylistItemId = item.Id,

@@ -19,5 +19,11 @@ public sealed class ProofOfPlayEventConfiguration : IEntityTypeConfiguration<Pro
         builder.Property(item => item.PlayedAt).IsRequired();
         builder.Property(item => item.DurationSeconds).IsRequired();
         builder.Property(item => item.CreatedAt).IsRequired();
+
+        builder.Property(item => item.OrganizationId).IsRequired();
+        builder.HasOne(item => item.Organization)
+            .WithMany()
+            .HasForeignKey(item => item.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

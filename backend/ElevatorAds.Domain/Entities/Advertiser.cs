@@ -5,6 +5,7 @@ namespace ElevatorAds.Domain.Entities;
 public class Advertiser
 {
     public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string LegalName { get; set; } = string.Empty;
     public string TaxId { get; set; } = string.Empty;
@@ -14,4 +15,6 @@ public class Advertiser
     public AdvertiserStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public Organization? Organization { get; set; }
 }

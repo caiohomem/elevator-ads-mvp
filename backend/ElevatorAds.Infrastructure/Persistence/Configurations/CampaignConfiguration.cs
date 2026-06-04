@@ -21,5 +21,11 @@ public sealed class CampaignConfiguration : IEntityTypeConfiguration<Campaign>
         builder.Property(item => item.MaxCpm).HasColumnType("numeric(18,4)");
         builder.Property(item => item.CreatedAt).IsRequired();
         builder.Property(item => item.UpdatedAt).IsRequired();
+
+        builder.Property(item => item.OrganizationId).IsRequired();
+        builder.HasOne(item => item.Organization)
+            .WithMany()
+            .HasForeignKey(item => item.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -5,6 +5,7 @@ namespace ElevatorAds.Domain.Entities;
 public class DailyPlaylist
 {
     public Guid Id { get; set; }
+    public Guid OrganizationId { get; set; }
     public Guid ScreenId { get; set; }
     public DateOnly Date { get; set; }
     public int Version { get; set; }
@@ -14,4 +15,6 @@ public class DailyPlaylist
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public List<DailyPlaylistItem> Items { get; set; } = [];
+
+    public Organization? Organization { get; set; }
 }

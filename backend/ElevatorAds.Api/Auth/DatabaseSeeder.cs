@@ -1,4 +1,5 @@
 using ElevatorAds.Application.Auth;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
@@ -52,5 +53,17 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Seeded admin user '{Username}'.", seedUsername);
+    }
+
+    public static async Task SeedDefaultOrganizationAsync(IServiceProvider services, ILogger logger, CancellationToken cancellationToken = default)
+    {
+        const string defaultName = "Default Organization";
+        const string defaultSlug = "default";
+
+        using var scope = services.CreateScope();
+        var organizationService = scope.ServiceProvider.GetRequiredService<OrganizationService>();
+        var orgId = await organizationService.EnsureDefaultOrganizationIdAsync(defaultName, defaultSlug, cancellationToken);
+
+        logger.LogInformation("Ensured default organization '{Slug}' (Id={OrganizationId}).", defaultSlug, orgId);
     }
 }
