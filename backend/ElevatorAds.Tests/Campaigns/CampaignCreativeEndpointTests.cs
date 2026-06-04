@@ -7,16 +7,16 @@ namespace ElevatorAds.Tests.Campaigns;
 
 public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public CampaignCreativeEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task AssignApprovedCreativeToCampaign_ReturnsCreated()
     {
-        var client = CreateClient();
+        var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
-        var creative = await CreateAndApproveCreativeAsync(client);
+        var creative = await CreateAndApproveCreativeAsync(client, factory);
 
         var response = await client.PostAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}", null);
 
@@ -32,9 +32,9 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task ListCampaignCreatives_ReturnsOk()
     {
-        var client = CreateClient();
+        var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
-        var creative = await CreateAndApproveCreativeAsync(client);
+        var creative = await CreateAndApproveCreativeAsync(client, factory);
         await client.PostAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}", null);
 
         var response = await client.GetAsync($"/api/campaigns/{campaign.Id}/creatives");
@@ -49,9 +49,9 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task RemoveCreativeFromCampaign_ReturnsNoContent()
     {
-        var client = CreateClient();
+        var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
-        var creative = await CreateAndApproveCreativeAsync(client);
+        var creative = await CreateAndApproveCreativeAsync(client, factory);
         await client.PostAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}", null);
 
         var deleteResponse = await client.DeleteAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}");
@@ -67,9 +67,9 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignDuplicateCreativeToCampaign_Returns422()
     {
-        var client = CreateClient();
+        var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
-        var creative = await CreateAndApproveCreativeAsync(client);
+        var creative = await CreateAndApproveCreativeAsync(client, factory);
         await client.PostAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}", null);
 
         var response = await client.PostAsync($"/api/campaigns/{campaign.Id}/creatives/{creative.Id}", null);
@@ -80,7 +80,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignNonApprovedCreativeToCampaign_Returns422()
     {
-        var client = CreateClient();
+        var (client, _) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateCreativeAsync(client);
 
@@ -92,15 +92,20 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignCreativeToMissingCampaign_Returns422Or404()
     {
-        var client = CreateClient();
-        var creative = await CreateAndApproveCreativeAsync(client);
+        var (client, factory) = CreateClientWithFactory();
+        var creative = await CreateAndApproveCreativeAsync(client, factory);
 
         var response = await client.PostAsync($"/api/campaigns/{Guid.NewGuid()}/creatives/{creative.Id}", null);
 
         Assert.Contains(response.StatusCode, new[] { HttpStatusCode.UnprocessableEntity, HttpStatusCode.NotFound });
     }
 
-    private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
+    private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
+    {
+        var factory = new TestWebApplicationFactory();
+        var client = factory.CreateAuthenticatedClient();
+        return (client, factory);
+    }
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
     {
@@ -160,14 +165,15 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
         return creative!;
     }
 
-    private async Task<CreativeDto> CreateAndApproveCreativeAsync(HttpClient client)
+    private async Task<CreativeDto> CreateAndApproveCreativeAsync(HttpClient client, TestWebApplicationFactory factory)
     {
         var creative = await CreateCreativeAsync(client);
 
         var submitResponse = await client.PostAsync($"/api/creatives/{creative.Id}/submit-for-review", null);
         submitResponse.EnsureSuccessStatusCode();
 
-        var approveResponse = await client.PostAsync($"/api/creatives/{creative.Id}/approve", null);
+        var adminClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        var approveResponse = await adminClient.PostAsync($"/api/creatives/{creative.Id}/approve", null);
         approveResponse.EnsureSuccessStatusCode();
 
         var approvedCreative = await approveResponse.Content.ReadFromJsonAsync<CreativeDto>();

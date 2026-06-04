@@ -10,7 +10,7 @@ namespace ElevatorAds.Tests.Playlists;
 
 public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public PlaylistDownloadEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
@@ -173,10 +173,11 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
             playlistDownload.Items.Select(item => item.Order));
     }
 
-    private (HttpClient Client, WebApplicationFactory<Program> Factory) CreateClient()
+    private (HttpClient Client, TestWebApplicationFactory Factory) CreateClient()
     {
-        var factory = _factory.WithWebHostBuilder(_ => { });
-        return (factory.CreateClient(), factory);
+        var factory = new TestWebApplicationFactory();
+        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, factory);
     }
 
     private async Task<DailyPlaylistDto> GenerateForScreenAsync(HttpClient client, Guid screenId, DateOnly date)

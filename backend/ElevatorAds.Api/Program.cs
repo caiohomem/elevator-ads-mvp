@@ -1,6 +1,9 @@
+using System.Text;
 using System.Text.Json.Serialization;
+using ElevatorAds.Api.Auth;
 using ElevatorAds.Application.Advertisers;
 using ElevatorAds.Application.Advertisers.Dtos;
+using ElevatorAds.Application.Auth;
 using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
@@ -16,8 +19,10 @@ using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
 using ElevatorAds.Infrastructure.Persistence;
 using ElevatorAds.Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 const string FrontendCorsPolicy = "Frontend";
@@ -62,6 +67,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddSingleton(TimeProvider.System);
+
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
+builder.Services.AddScoped<AuthService>();
+
 builder.Services.AddScoped<IBuildingRepository, EfBuildingRepository>();
 builder.Services.AddScoped<BuildingService>();
 builder.Services.AddScoped<IScreenRepository, EfScreenRepository>();
@@ -84,11 +94,87 @@ builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventReposi
 builder.Services.AddScoped<ProofOfPlayService>();
 builder.Services.AddScoped<DeliveryReportService>();
 
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "ElevatorAds";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ElevatorAds.Clients";
+var jwtSecret = Environment.GetEnvironmentVariable("JWT__Secret")
+    ?? builder.Configuration["JWT:Secret"];
+
+if (string.IsNullOrWhiteSpace(jwtSecret))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtSecret = "development-only-secret-please-override-32-bytes-minimum";
+    }
+    else
+    {
+        throw new InvalidOperationException("JWT secret is not configured. Set the JWT__Secret environment variable.");
+    }
+}
+
+if (Encoding.UTF8.GetByteCount(jwtSecret) < 32)
+{
+    throw new InvalidOperationException("JWT secret must be at least 32 bytes for HS256 signing.");
+}
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = jwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1),
+            NameClaimType = AuthService.UsernameClaim,
+            RoleClaimType = AuthService.RoleClaim
+        };
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthPolicies.AdminPolicy, policy =>
+        policy.RequireAuthenticatedUser().RequireClaim(AuthService.RoleClaim, AuthPolicies.AdminRole));
+
+    options.AddPolicy(AuthPolicies.OperatorPolicy, policy =>
+        policy.RequireAuthenticatedUser().RequireClaim(
+            AuthService.RoleClaim,
+            AuthPolicies.AdminRole,
+            AuthPolicies.OperatorRole));
+
+    options.AddPolicy(AuthPolicies.ViewerPolicy, policy =>
+        policy.RequireAuthenticatedUser());
+});
+
 var app = builder.Build();
 
 app.UseCors(FrontendCorsPolicy);
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseSeeder");
+    await DatabaseSeeder.SeedAdminUserAsync(scope.ServiceProvider, logger);
+}
+
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+var auth = app.MapGroup("/api/auth");
+
+auth.MapPost("/login", async (LoginRequest request, AuthService service, CancellationToken cancellationToken) =>
+{
+    var outcome = await service.ValidateAndLoginAsync(request, cancellationToken);
+    return outcome.IsSuccess
+        ? Results.Ok(outcome.Response)
+        : Results.Json(new { error = outcome.Error }, statusCode: StatusCodes.Status401Unauthorized);
+});
 
 var buildings = app.MapGroup("/api/buildings");
 
@@ -114,7 +200,7 @@ buildings.MapPost("/", async (CreateBuildingRequest request, BuildingService ser
     return result.IsSuccess
         ? Results.Created($"/api/buildings/{result.Value!.Id}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 buildings.MapPut("/{id:guid}", async (Guid id, UpdateBuildingRequest request, BuildingService service) =>
 {
@@ -125,10 +211,11 @@ buildings.MapPut("/{id:guid}", async (Guid id, UpdateBuildingRequest request, Bu
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 buildings.MapDelete("/{id:guid}", async (Guid id, BuildingService service) =>
-    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 var screens = app.MapGroup("/api/screens");
 
@@ -154,7 +241,7 @@ screens.MapPost("/", async (CreateScreenRequest request, ScreenService service) 
     return result.IsSuccess
         ? Results.Created($"/api/screens/{result.Value!.Id}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 screens.MapPut("/{id:guid}", async (Guid id, UpdateScreenRequest request, ScreenService service) =>
 {
@@ -165,16 +252,17 @@ screens.MapPut("/{id:guid}", async (Guid id, UpdateScreenRequest request, Screen
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 screens.MapDelete("/{id:guid}", async (Guid id, ScreenService service) =>
-    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 screens.MapPost("/{id:guid}/status-check", async (Guid id, ScreenService service) =>
 {
     var screen = await service.StatusCheckAsync(id);
     return screen is null ? Results.NotFound() : Results.Ok(screen);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 screens.MapGet("/{screenId:guid}/playlists", async (Guid screenId, string? date, IScreenRepository screenRepository, PlaylistGenerationService service) =>
 {
@@ -226,8 +314,12 @@ screens.MapPost("/{screenId:guid}/playlist/{playlistId:guid}/downloaded", async 
     return result.WasFound
         ? Results.UnprocessableEntity(new { error = result.Error })
         : Results.NotFound();
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
+// Playback-report POST is intentionally left public: this is a device-facing
+// endpoint called by screens/players to report proof-of-play. Screens do not
+// authenticate in the MVP; access control here is enforced via network/edge
+// controls in the deployment environment.
 screens.MapPost("/{screenId:guid}/playback-reports", async (Guid screenId, CreatePlaybackReportRequest request, ProofOfPlayService service) =>
 {
     var result = await service.CreateAsync(screenId, request);
@@ -275,7 +367,7 @@ advertisers.MapPost("/", async (CreateAdvertiserRequest request, AdvertiserServi
     return result.IsSuccess
         ? Results.Created($"/api/advertisers/{result.Value!.Id}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request, AdvertiserService service) =>
 {
@@ -286,10 +378,11 @@ advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =>
-    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 var creatives = app.MapGroup("/api/creatives");
 
@@ -315,7 +408,7 @@ creatives.MapPost("/", async (CreateCreativeRequest request, CreativeService ser
     return result.IsSuccess
         ? Results.Created($"/api/creatives/{result.Value!.Id}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 creatives.MapPut("/{id:guid}", async (Guid id, UpdateCreativeRequest request, CreativeService service) =>
 {
@@ -326,10 +419,11 @@ creatives.MapPut("/{id:guid}", async (Guid id, UpdateCreativeRequest request, Cr
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 creatives.MapDelete("/{id:guid}", async (Guid id, CreativeService service) =>
-    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 creatives.MapPost("/{id:guid}/submit-for-review", async (Guid id, CreativeService service) =>
 {
@@ -340,7 +434,7 @@ creatives.MapPost("/{id:guid}/submit-for-review", async (Guid id, CreativeServic
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 creatives.MapPost("/{id:guid}/approve", async (Guid id, CreativeService service) =>
 {
@@ -351,7 +445,7 @@ creatives.MapPost("/{id:guid}/approve", async (Guid id, CreativeService service)
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
 
 creatives.MapPost("/{id:guid}/reject", async (Guid id, CreativeService service) =>
 {
@@ -362,7 +456,7 @@ creatives.MapPost("/{id:guid}/reject", async (Guid id, CreativeService service) 
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
 
 var campaigns = app.MapGroup("/api/campaigns");
 
@@ -388,7 +482,7 @@ campaigns.MapPost("/", async (CampaignService.CreateCampaignRequest request, Cam
     return result.IsSuccess
         ? Results.Created($"/api/campaigns/{result.Value!.Id}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapPut("/{id:guid}", async (Guid id, CampaignService.UpdateCampaignRequest request, CampaignService service) =>
 {
@@ -399,10 +493,11 @@ campaigns.MapPut("/{id:guid}", async (Guid id, CampaignService.UpdateCampaignReq
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapDelete("/{id:guid}", async (Guid id, CampaignService service) =>
-    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound());
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapGet("/{campaignId:guid}/creatives", async (Guid campaignId, CampaignCreativeService service) =>
 {
@@ -416,10 +511,11 @@ campaigns.MapPost("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid 
     return result.IsSuccess
         ? Results.Created($"/api/campaigns/{campaignId}/creatives/{creativeId}", result.Value)
         : Results.UnprocessableEntity(new { error = result.Error });
-});
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapDelete("/{campaignId:guid}/creatives/{creativeId:guid}", async (Guid campaignId, Guid creativeId, CampaignCreativeService service) =>
-    await service.RemoveAsync(campaignId, creativeId) ? Results.NoContent() : Results.NotFound());
+    await service.RemoveAsync(campaignId, creativeId) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapGet("/{campaignId:guid}/delivery-constraints", async (Guid campaignId, CampaignDeliveryConstraintsService service) =>
 {
@@ -435,7 +531,7 @@ campaigns.MapPut(
         return result.IsSuccess
             ? Results.Ok(result.Value)
             : Results.UnprocessableEntity(new { error = result.Error });
-    });
+    }).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapGet("/{campaignId:guid}/playback-reports", async (Guid campaignId, [AsParameters] PagedQuery query, ProofOfPlayService service) =>
 {
@@ -458,7 +554,7 @@ playlists.MapPost("/generate", async (string? date, PlaylistGenerationService se
 
     var generated = await service.GenerateAsync(parsedDate);
     return Results.Ok(generated);
-});
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
 
 playlists.MapGet("/", async ([AsParameters] PagedQuery query, PlaylistGenerationService service) =>
 {
@@ -482,7 +578,7 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
     return published is null
         ? Results.UnprocessableEntity(new { error = "Playlist not found or cannot be published." })
         : Results.Ok(published);
-});
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
 
 var playbackReports = app.MapGroup("/api/playback-reports");
 

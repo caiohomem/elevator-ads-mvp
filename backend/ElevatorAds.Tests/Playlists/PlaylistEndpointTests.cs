@@ -8,7 +8,7 @@ namespace ElevatorAds.Tests.Playlists;
 
 public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public PlaylistEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
@@ -136,7 +136,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
+    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
     private async Task<DailyPlaylistDto> GenerateForScreenAsync(HttpClient client, Guid screenId)
     {

@@ -10,7 +10,7 @@ namespace ElevatorAds.Tests.Campaigns;
 
 public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
@@ -136,7 +136,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
+    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
     {

@@ -8,7 +8,7 @@ namespace ElevatorAds.Tests.Advertisers;
 
 public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public AdvertiserEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
@@ -171,7 +171,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
+    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client, string? name = null, string status = "Active")
     {

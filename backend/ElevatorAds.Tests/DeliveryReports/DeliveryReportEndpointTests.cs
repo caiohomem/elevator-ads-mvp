@@ -10,7 +10,7 @@ namespace ElevatorAds.Tests.DeliveryReports;
 
 public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public DeliveryReportEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
@@ -303,13 +303,14 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
     }
 
-    private (HttpClient Client, WebApplicationFactory<Program> Factory) CreateClientWithFactory()
+    private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
     {
-        var factory = _factory.WithWebHostBuilder(_ => { });
-        return (factory.CreateClient(), factory);
+        var factory = new TestWebApplicationFactory();
+        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, factory);
     }
 
-    private static async Task SeedEventsAsync(WebApplicationFactory<Program> factory, params ProofOfPlayEvent[] events)
+    private static async Task SeedEventsAsync(TestWebApplicationFactory factory, params ProofOfPlayEvent[] events)
     {
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IProofOfPlayEventRepository>();
