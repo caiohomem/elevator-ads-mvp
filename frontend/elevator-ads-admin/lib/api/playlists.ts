@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchPaged, apiMutate, type ApiResource, type ApiResult, withMockFallback } from "@/lib/api/client";
+import { apiFetch, apiFetchList, apiFetchPaged, apiMutate, type ApiResource, type ApiResult, withMockFallback } from "@/lib/api/client";
 import { getCampaignsList } from "@/lib/api/campaigns";
 import { dailyPlaylists as mockPlaylists } from "@/lib/mockData";
 import type {
@@ -30,7 +30,7 @@ type PlaylistLookups = {
 };
 
 export async function getDailyPlaylists(): Promise<ApiResource<DailyPlaylist[]>> {
-  const [playlistsResult, lookupsResult] = await Promise.all([apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint), loadLookups()]);
+  const [playlistsResult, lookupsResult] = await Promise.all([apiFetchList<ApiDailyPlaylist>(playlistsEndpoint), loadLookups()]);
 
   if (!playlistsResult.ok) {
     return withMockFallback(playlistsEndpoint, playlistsResult, mockPlaylists);
@@ -43,7 +43,7 @@ export async function getDailyPlaylists(): Promise<ApiResource<DailyPlaylist[]>>
 }
 
 export async function getDailyPlaylistsList(): Promise<ApiResult<ApiDailyPlaylist[]>> {
-  return apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint);
+  return apiFetchList<ApiDailyPlaylist>(playlistsEndpoint);
 }
 
 export async function getDailyPlaylistsPaged(
@@ -79,9 +79,9 @@ export async function publishPlaylist(id: string): Promise<ApiResult<ApiDailyPla
 
 async function loadLookups(): Promise<PlaylistLookups> {
   const [screensResult, buildingsResult, creativesResult, campaignsResult] = await Promise.all([
-    apiFetch<ApiScreen[]>(screensEndpoint),
-    apiFetch<ApiBuilding[]>(buildingsEndpoint),
-    apiFetch<ApiCreative[]>(creativesEndpoint),
+    apiFetchList<ApiScreen>(screensEndpoint),
+    apiFetchList<ApiBuilding>(buildingsEndpoint),
+    apiFetchList<ApiCreative>(creativesEndpoint),
     getCampaignsList(),
   ]);
 

@@ -15,8 +15,8 @@ public sealed class DeliveryReportService
 
     public async Task<OverviewReportDto> GetOverviewAsync(DateOnly date)
     {
-        var from = date.ToDateTime(TimeOnly.MinValue);
-        var to = date.AddDays(1).ToDateTime(TimeOnly.MinValue);
+        var from = ToUtcDateTime(date);
+        var to = ToUtcDateTime(date.AddDays(1));
         var events = (await _proofOfPlayRepository.GetByDateRangeAsync(from, to)).ToList();
 
         return new OverviewReportDto(
@@ -55,7 +55,10 @@ public sealed class DeliveryReportService
     }
 
     private static (DateTime From, DateTime To) RangeToDateTimes(DateOnly from, DateOnly to) =>
-        (from.ToDateTime(TimeOnly.MinValue), to.AddDays(1).ToDateTime(TimeOnly.MinValue));
+        (ToUtcDateTime(from), ToUtcDateTime(to.AddDays(1)));
+
+    private static DateTime ToUtcDateTime(DateOnly date) =>
+        date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
 
     private static IReadOnlyList<GroupSummaryDto> GroupBy(
         IEnumerable<ProofOfPlayEvent> events,

@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import { apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
 import type {
   Advertiser,
   ApiAdvertiser,
@@ -38,8 +38,8 @@ export async function updateAdvertiser(
 
 export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
   const [advertisersResult, campaignsResult] = await Promise.all([
-    apiFetch<ApiAdvertiser[]>(advertisersEndpoint),
-    apiFetch<ApiCampaign[]>(campaignsEndpoint),
+    apiFetchList<ApiAdvertiser>(advertisersEndpoint),
+    apiFetchList<ApiCampaign>(campaignsEndpoint),
   ]);
 
   if (!advertisersResult.ok) {
@@ -62,7 +62,7 @@ export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
 }
 
 export async function getAdvertisersList(): Promise<ApiResult<ApiAdvertiser[]>> {
-  return apiFetch<ApiAdvertiser[]>(advertisersEndpoint);
+  return apiFetchList<ApiAdvertiser>(advertisersEndpoint);
 }
 
 export async function getAdvertisersPaged(

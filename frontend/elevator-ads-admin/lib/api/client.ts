@@ -8,6 +8,21 @@ export interface ApiError {
 export type ApiResult<T> = { ok: true; data: T } | ({ ok: false } & ApiError);
 export type ApiResource<T> = { ok: true; data: T };
 
+type ListResponse<T> = T[] | PagedResult<T>;
+
+export async function apiFetchList<T>(path: string): Promise<ApiResult<T[]>> {
+  const result = await apiFetch<ListResponse<T>>(path);
+
+  if (!result.ok) {
+    return result;
+  }
+
+  return {
+    ok: true,
+    data: Array.isArray(result.data) ? result.data : result.data.items,
+  };
+}
+
 export async function apiFetch<T>(path: string): Promise<ApiResult<T>> {
   const requestUrl = buildRequestUrl(path);
 

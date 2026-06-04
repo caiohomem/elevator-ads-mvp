@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchPaged, apiMutate, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
+import { apiFetchList, apiFetchPaged, apiMutate, logDependentEndpointWarning, type ApiResult } from "@/lib/api/client";
 import type { ApiBuilding, ApiScreen, Building, BuildingType, PagedQuery, PagedResult } from "@/lib/types";
 
 const buildingsEndpoint = "/api/buildings";
@@ -29,8 +29,8 @@ export async function updateBuilding(
 
 export async function getBuildings(): Promise<ApiResult<Building[]>> {
   const [buildingsResult, screensResult] = await Promise.all([
-    apiFetch<ApiBuilding[]>(buildingsEndpoint),
-    apiFetch<ApiScreen[]>(screensEndpoint),
+    apiFetchList<ApiBuilding>(buildingsEndpoint),
+    apiFetchList<ApiScreen>(screensEndpoint),
   ]);
 
   if (!buildingsResult.ok) {
@@ -65,7 +65,7 @@ export async function getBuildings(): Promise<ApiResult<Building[]>> {
 }
 
 export async function getBuildingsList(): Promise<ApiResult<ApiBuilding[]>> {
-  return apiFetch<ApiBuilding[]>(buildingsEndpoint);
+  return apiFetchList<ApiBuilding>(buildingsEndpoint);
 }
 
 export async function getBuildingsPaged(
