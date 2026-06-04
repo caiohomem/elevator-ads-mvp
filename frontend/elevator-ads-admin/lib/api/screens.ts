@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import { apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
 import type {
   ApiBuilding,
   ApiDailyPlaylist,
@@ -38,9 +38,9 @@ export async function updateScreen(
 
 export async function getScreens(): Promise<ApiResult<Screen[]>> {
   const [screensResult, buildingsResult, playlistsResult] = await Promise.all([
-    apiFetch<ApiScreen[]>(screensEndpoint),
-    apiFetch<ApiBuilding[]>(buildingsEndpoint),
-    apiFetch<ApiDailyPlaylist[]>(playlistsEndpoint),
+    apiFetchList<ApiScreen>(screensEndpoint),
+    apiFetchList<ApiBuilding>(buildingsEndpoint),
+    apiFetchList<ApiDailyPlaylist>(playlistsEndpoint),
   ]);
 
   if (!screensResult.ok) {
@@ -73,7 +73,7 @@ export async function getScreens(): Promise<ApiResult<Screen[]>> {
 }
 
 export async function getScreensList(): Promise<ApiResult<ApiScreen[]>> {
-  return apiFetch<ApiScreen[]>(screensEndpoint);
+  return apiFetchList<ApiScreen>(screensEndpoint);
 }
 
 export async function getScreensPaged(

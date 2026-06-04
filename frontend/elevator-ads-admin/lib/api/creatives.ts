@@ -1,4 +1,4 @@
-import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import { apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
 import type {
   ApiAdvertiser,
   ApiCreative,
@@ -57,8 +57,8 @@ export async function rejectCreative(id: string): Promise<ApiResult<ApiCreative>
 
 export async function getCreatives(): Promise<ApiResult<Creative[]>> {
   const [creativesResult, advertisersResult] = await Promise.all([
-    apiFetch<ApiCreative[]>(creativesEndpoint),
-    apiFetch<ApiAdvertiser[]>(advertisersEndpoint),
+    apiFetchList<ApiCreative>(creativesEndpoint),
+    apiFetchList<ApiAdvertiser>(advertisersEndpoint),
   ]);
 
   if (!creativesResult.ok) {
@@ -78,7 +78,7 @@ export async function getCreatives(): Promise<ApiResult<Creative[]>> {
 }
 
 export async function getCreativesList(): Promise<ApiResult<ApiCreative[]>> {
-  return apiFetch<ApiCreative[]>(creativesEndpoint);
+  return apiFetchList<ApiCreative>(creativesEndpoint);
 }
 
 export async function getCreativesPaged(

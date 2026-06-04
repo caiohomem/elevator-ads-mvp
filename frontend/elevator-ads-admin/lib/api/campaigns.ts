@@ -1,4 +1,4 @@
-import { apiDelete, apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import { apiDelete, apiFetch, apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
 import type {
   ApiAdvertiser,
   ApiCampaign,
@@ -92,7 +92,7 @@ export async function updateCampaign(
 }
 
 export async function getCampaignsList(): Promise<ApiResult<ApiCampaign[]>> {
-  return apiFetch<ApiCampaign[]>(campaignsEndpoint);
+  return apiFetchList<ApiCampaign>(campaignsEndpoint);
 }
 
 export async function getCampaignsPaged(
@@ -124,8 +124,8 @@ export async function removeCreative(campaignId: string, creativeId: string): Pr
 
 export async function getCampaigns(): Promise<ApiResult<Campaign[]>> {
   const [campaignsResult, advertisersResult] = await Promise.all([
-    apiFetch<ApiCampaign[]>(campaignsEndpoint),
-    apiFetch<ApiAdvertiser[]>(advertisersEndpoint),
+    apiFetchList<ApiCampaign>(campaignsEndpoint),
+    apiFetchList<ApiAdvertiser>(advertisersEndpoint),
   ]);
 
   if (!campaignsResult.ok) {
