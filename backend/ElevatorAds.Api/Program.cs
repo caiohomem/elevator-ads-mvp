@@ -167,6 +167,7 @@ using (var scope = app.Services.CreateScope())
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseSeeder");
     await DatabaseSeeder.SeedAdminUserAsync(scope.ServiceProvider, logger);
     await DatabaseSeeder.SeedDefaultOrganizationAsync(scope.ServiceProvider, logger);
+    await DemoDataSeeder.SeedDemoDataAsync(scope.ServiceProvider, logger);
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
