@@ -8,14 +8,14 @@ namespace ElevatorAds.Tests.Buildings;
 
 public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public BuildingEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
     [Fact]
     public async Task PostBuilding_CreatesBuilding()
     {
-        var client = _factory.CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var request = new CreateBuildingRequest(
             "Tower One",
             "123 Main St",
@@ -38,7 +38,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetBuildings_ReturnsPagedResult_AndSupportsSortingAndValidation()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var alpha = await CreateBuildingAsync(client, "Alpha Tower", "Lisbon");
         var bravo = await CreateBuildingAsync(client, "Bravo Tower", "Porto");
         var charlie = await CreateBuildingAsync(client, "Charlie Tower", "Braga");
@@ -84,7 +84,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetBuildingById_ReturnsBuilding()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var created = await CreateBuildingAsync(client);
 
         var response = await client.GetAsync($"/api/buildings/{created.Id}");
@@ -100,7 +100,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PutBuilding_UpdatesBuilding()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var created = await CreateBuildingAsync(client);
         var request = new CreateBuildingRequest(
             "Tower Two",
@@ -126,7 +126,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task DeleteBuilding_RemovesBuilding()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var created = await CreateBuildingAsync(client);
 
         var deleteResponse = await client.DeleteAsync($"/api/buildings/{created.Id}");
@@ -139,7 +139,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostBuilding_WithoutName_ReturnsValidationFailure()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var request = new CreateBuildingRequest(
             "",
             "123 Main St",
@@ -157,7 +157,7 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostBuilding_WithNegativeAudience_ReturnsValidationFailure()
     {
-        var client = CreateClient();
+        var client = new TestWebApplicationFactory().CreateAuthenticatedClient();
         var request = new CreateBuildingRequest(
             "Tower One",
             "123 Main St",
@@ -171,8 +171,6 @@ public class BuildingEndpointTests : IClassFixture<TestWebApplicationFactory>
 
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
-
-    private HttpClient CreateClient() => _factory.WithWebHostBuilder(_ => { }).CreateClient();
 
     private async Task<BuildingDto> CreateBuildingAsync(HttpClient client, string? name = null, string? city = null)
     {

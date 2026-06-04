@@ -10,7 +10,7 @@ namespace ElevatorAds.Tests.PlaybackReports;
 
 public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactory _factory;
 
     public PlaybackReportEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
 
@@ -274,15 +274,16 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private (HttpClient Client, WebApplicationFactory<Program> Factory) CreateClientWithFactory()
+    private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
     {
-        var factory = _factory.WithWebHostBuilder(_ => { });
-        return (factory.CreateClient(), factory);
+        var factory = new TestWebApplicationFactory();
+        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, factory);
     }
 
-    private HttpClient CreateClient() => CreateClientWithFactory().Client;
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
-    private static async Task<PlaylistItemRef> GetFirstPlaylistItemAsync(WebApplicationFactory<Program> factory, Guid playlistId)
+    private static async Task<PlaylistItemRef> GetFirstPlaylistItemAsync(TestWebApplicationFactory factory, Guid playlistId)
     {
         using var scope = factory.Services.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IDailyPlaylistRepository>();
