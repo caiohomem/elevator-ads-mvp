@@ -189,6 +189,7 @@ public class PlaylistGenerationTests
         var building = new Building
         {
             Id = Guid.NewGuid(),
+            OrganizationId = Guid.NewGuid(),
             Name = "Tower One",
             Address = "Rua A",
             City = "Lisbon",
@@ -204,6 +205,7 @@ public class PlaylistGenerationTests
         var screen = new Screen
         {
             Id = Guid.NewGuid(),
+            OrganizationId = building.OrganizationId,
             BuildingId = building.Id,
             Name = "Screen A",
             ExternalCode = "SCR-001",
@@ -280,6 +282,7 @@ public class PlaylistGenerationTests
             var campaign = new Campaign
             {
                 Id = Guid.NewGuid(),
+                OrganizationId = Guid.NewGuid(),
                 AdvertiserId = Guid.NewGuid(),
                 Name = $"Campaign-{status}",
                 StartDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
@@ -297,6 +300,7 @@ public class PlaylistGenerationTests
             var creative = new Creative
             {
                 Id = Guid.NewGuid(),
+                OrganizationId = Guid.NewGuid(),
                 AdvertiserId = Guid.NewGuid(),
                 Name = $"Creative-{approvalStatus}-{durationSeconds}",
                 MediaUrl = $"https://cdn.example.com/{Guid.NewGuid():N}.jpg",

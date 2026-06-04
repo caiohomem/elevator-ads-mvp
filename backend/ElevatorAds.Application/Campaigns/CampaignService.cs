@@ -1,4 +1,5 @@
 using ElevatorAds.Domain.Common;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
@@ -7,13 +8,21 @@ namespace ElevatorAds.Application.Campaigns;
 
 public sealed class CampaignService
 {
+    private const string DefaultOrganizationName = "Default Organization";
+    private const string DefaultOrganizationSlug = "default";
+
     private readonly IAdvertiserRepository _advertiserRepository;
     private readonly ICampaignRepository _campaignRepository;
+    private readonly OrganizationService _organizationService;
 
-    public CampaignService(ICampaignRepository campaignRepository, IAdvertiserRepository advertiserRepository)
+    public CampaignService(
+        ICampaignRepository campaignRepository,
+        IAdvertiserRepository advertiserRepository,
+        OrganizationService organizationService)
     {
         _campaignRepository = campaignRepository;
         _advertiserRepository = advertiserRepository;
+        _organizationService = organizationService;
     }
 
     public async Task<IReadOnlyList<CampaignDto>> GetAllAsync()
@@ -44,10 +53,16 @@ public sealed class CampaignService
             return ServiceResult<CampaignDto>.Failure(error);
         }
 
+        var advertiser = await _advertiserRepository.GetByIdAsync(request.AdvertiserId);
+        var organizationId = advertiser is not null && advertiser.OrganizationId != Guid.Empty
+            ? advertiser.OrganizationId
+            : await _organizationService.EnsureDefaultOrganizationIdAsync(DefaultOrganizationName, DefaultOrganizationSlug);
+
         var now = DateTime.UtcNow;
         var campaign = new Campaign
         {
             Id = Guid.NewGuid(),
+            OrganizationId = organizationId,
             AdvertiserId = request.AdvertiserId,
             Name = request.Name.Trim(),
             StartDate = request.StartDate,
@@ -198,7 +213,6 @@ public sealed class CampaignService
     public sealed record ServiceResult<T>(bool IsSuccess, string? Error, T? Value)
     {
         public static ServiceResult<T> Success(T? value) => new(true, null, value);
-
         public static ServiceResult<T> Failure(string error) => new(false, error, default);
     }
 }

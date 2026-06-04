@@ -14,6 +14,13 @@ public sealed class EfBuildingRepository : IBuildingRepository
     public async Task<IEnumerable<Building>> GetAllAsync() =>
         await _context.Buildings.AsNoTracking().OrderBy(item => item.CreatedAt).ToListAsync();
 
+    public async Task<IEnumerable<Building>> GetByOrganizationAsync(Guid organizationId) =>
+        await _context.Buildings
+            .AsNoTracking()
+            .Where(item => item.OrganizationId == organizationId)
+            .OrderBy(item => item.CreatedAt)
+            .ToListAsync();
+
     public async Task<(IEnumerable<Building> Items, int TotalCount)> GetPagedAsync(PagedQuery query)
     {
         var itemsQuery = _context.Buildings.AsNoTracking();

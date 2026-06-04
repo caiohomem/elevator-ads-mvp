@@ -11,6 +11,8 @@ using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
 using ElevatorAds.Application.DeliveryReports;
+using ElevatorAds.Application.Organizations;
+using ElevatorAds.Application.Organizations.Dtos;
 using ElevatorAds.Application.PlaybackReports;
 using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Application.Playlists;
@@ -93,6 +95,8 @@ builder.Services.AddScoped<PlaylistDownloadService>();
 builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventRepository>();
 builder.Services.AddScoped<ProofOfPlayService>();
 builder.Services.AddScoped<DeliveryReportService>();
+builder.Services.AddScoped<IOrganizationRepository, EfOrganizationRepository>();
+builder.Services.AddScoped<OrganizationService>();
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "ElevatorAds";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "ElevatorAds.Clients";
@@ -162,6 +166,7 @@ using (var scope = app.Services.CreateScope())
 {
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseSeeder");
     await DatabaseSeeder.SeedAdminUserAsync(scope.ServiceProvider, logger);
+    await DatabaseSeeder.SeedDefaultOrganizationAsync(scope.ServiceProvider, logger);
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
@@ -175,6 +180,53 @@ auth.MapPost("/login", async (LoginRequest request, AuthService service, Cancell
         ? Results.Ok(outcome.Response)
         : Results.Json(new { error = outcome.Error }, statusCode: StatusCodes.Status401Unauthorized);
 });
+
+var organizations = app.MapGroup("/api/organizations");
+
+organizations.MapGet("/", async ([AsParameters] PagedQuery query, OrganizationService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+organizations.MapGet("/{id:guid}", async (Guid id, OrganizationService service) =>
+{
+    var org = await service.GetByIdAsync(id);
+    return org is null ? Results.NotFound() : Results.Ok(org);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+organizations.MapGet("/by-slug/{slug}", async (string slug, OrganizationService service) =>
+{
+    var org = await service.GetBySlugAsync(slug);
+    return org is null ? Results.NotFound() : Results.Ok(org);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+organizations.MapPost("/", async (CreateOrganizationRequest request, OrganizationService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/organizations/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
+
+organizations.MapPut("/{id:guid}", async (Guid id, UpdateOrganizationRequest request, OrganizationService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.AdminPolicy);
+
+organizations.MapDelete("/{id:guid}", async (Guid id, OrganizationService service) =>
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.AdminPolicy);
 
 var buildings = app.MapGroup("/api/buildings");
 

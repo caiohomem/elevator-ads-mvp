@@ -202,6 +202,7 @@ public class CampaignEligibilityServiceTests
         await campaignRepository.AddAsync(new Campaign
         {
             Id = campaignId,
+            OrganizationId = Guid.NewGuid(),
             AdvertiserId = Guid.NewGuid(),
             Name = "Campaign",
             CreatedAt = DateTime.UtcNow,

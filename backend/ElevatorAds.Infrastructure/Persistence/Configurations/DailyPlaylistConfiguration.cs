@@ -26,5 +26,11 @@ public sealed class DailyPlaylistConfiguration : IEntityTypeConfiguration<DailyP
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(item => new { item.ScreenId, item.Date, item.Version }).IsUnique();
+
+        builder.Property(item => item.OrganizationId).IsRequired();
+        builder.HasOne(item => item.Organization)
+            .WithMany()
+            .HasForeignKey(item => item.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

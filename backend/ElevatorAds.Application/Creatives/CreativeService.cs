@@ -1,5 +1,6 @@
 using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Creatives.Dtos;
+using ElevatorAds.Application.Organizations;
 using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
@@ -8,13 +9,21 @@ namespace ElevatorAds.Application.Creatives;
 
 public sealed class CreativeService
 {
+    private const string DefaultOrganizationName = "Default Organization";
+    private const string DefaultOrganizationSlug = "default";
+
     private readonly IAdvertiserRepository _advertiserRepository;
     private readonly ICreativeRepository _creativeRepository;
+    private readonly OrganizationService _organizationService;
 
-    public CreativeService(ICreativeRepository creativeRepository, IAdvertiserRepository advertiserRepository)
+    public CreativeService(
+        ICreativeRepository creativeRepository,
+        IAdvertiserRepository advertiserRepository,
+        OrganizationService organizationService)
     {
         _creativeRepository = creativeRepository;
         _advertiserRepository = advertiserRepository;
+        _organizationService = organizationService;
     }
 
     public async Task<IReadOnlyList<CreativeDto>> GetAllAsync()
@@ -45,10 +54,16 @@ public sealed class CreativeService
             return ServiceResult<CreativeDto>.Failure(error);
         }
 
+        var advertiser = await _advertiserRepository.GetByIdAsync(request.AdvertiserId);
+        var organizationId = advertiser is not null && advertiser.OrganizationId != Guid.Empty
+            ? advertiser.OrganizationId
+            : await _organizationService.EnsureDefaultOrganizationIdAsync(DefaultOrganizationName, DefaultOrganizationSlug);
+
         var now = DateTime.UtcNow;
         var creative = new Creative
         {
             Id = Guid.NewGuid(),
+            OrganizationId = organizationId,
             AdvertiserId = request.AdvertiserId,
             Name = request.Name.Trim(),
             MediaUrl = request.MediaUrl.Trim(),
@@ -172,7 +187,6 @@ public sealed class CreativeService
     public sealed record ServiceResult<T>(bool IsSuccess, string? Error, T? Value)
     {
         public static ServiceResult<T> Success(T? value) => new(true, null, value);
-
         public static ServiceResult<T> Failure(string error) => new(false, error, default);
     }
 }
