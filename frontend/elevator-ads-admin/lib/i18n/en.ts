@@ -34,6 +34,21 @@ export interface TranslationDictionary {
     currentLanguage: string;
     updatedForMvp: string;
   };
+  login: {
+    title: string;
+    subtitle: string;
+    username: string;
+    password: string;
+    submit: string;
+    submitting: string;
+    invalidCredentials: string;
+    unexpectedError: string;
+    logout: string;
+    loggedInAs: string;
+    forbiddenTitle: string;
+    forbiddenMessage: string;
+    forbiddenAction: string;
+  };
   pagination: {
     showing: string;
     of: string;
@@ -272,6 +287,21 @@ export const en: TranslationDictionary = {
     currentTheme: "Current theme",
     currentLanguage: "Current language",
     updatedForMvp: "Prepared for MVP daily playlist delivery",
+  },
+  login: {
+    title: "Sign in",
+    subtitle: "Use your admin credentials to access scheduled playlist operations.",
+    username: "Username",
+    password: "Password",
+    submit: "Sign in",
+    submitting: "Signing in...",
+    invalidCredentials: "Invalid username or password.",
+    unexpectedError: "Unable to sign in right now. Please try again.",
+    logout: "Sign out",
+    loggedInAs: "Signed in as",
+    forbiddenTitle: "Forbidden",
+    forbiddenMessage: "Your account is authenticated, but it does not have permission to complete that action.",
+    forbiddenAction: "Back to dashboard",
   },
   pagination: {
     showing: "Showing",

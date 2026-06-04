@@ -1,10 +1,23 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { MobileNav } from "@/components/MobileNav";
 import { ShellTitle } from "@/components/ShellTitle";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/lib/auth/context";
+import { useTranslation } from "@/lib/i18n";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { dictionary } = useTranslation();
+  const { isAuthenticated, role, logout } = useAuth();
+
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen text-[var(--foreground)]">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
@@ -19,6 +32,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="flex items-center gap-2 sm:gap-3">
                 <LanguageSelector />
                 <ThemeToggle />
+                {isAuthenticated && role ? (
+                  <>
+                    <div className="hidden rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-strong)] px-3 py-2 text-sm font-medium text-[var(--foreground)] lg:block">
+                      {dictionary.login.loggedInAs}: {role}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="rounded-2xl border border-[var(--panel-border)] bg-[var(--panel-strong)] px-3 py-2 text-sm font-medium text-[var(--foreground)] transition hover:translate-y-[-1px]"
+                    >
+                      {dictionary.login.logout}
+                    </button>
+                  </>
+                ) : null}
               </div>
             </div>
           </header>

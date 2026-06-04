@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
+import { AuthProvider } from "@/lib/auth/context";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body className={`${manrope.variable} ${plexMono.variable} grain`}>
         <ThemeProvider>
           <I18nProvider>
-            <AppShell>{children}</AppShell>
+            <AuthProvider>
+              <AppShell>{children}</AppShell>
+            </AuthProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>
