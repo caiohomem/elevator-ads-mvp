@@ -16,6 +16,7 @@ using ElevatorAds.Application.Organizations.Dtos;
 using ElevatorAds.Application.PlaybackReports;
 using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Application.Playlists;
+using ElevatorAds.Application.Programmatic;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
@@ -92,6 +93,7 @@ builder.Services.AddScoped<IDailyPlaylistRepository, EfDailyPlaylistRepository>(
 builder.Services.AddScoped<CampaignEligibilityService>();
 builder.Services.AddScoped<PlaylistGenerationService>();
 builder.Services.AddScoped<PlaylistDownloadService>();
+builder.Services.AddScoped<SimulatorForecastService>();
 builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventRepository>();
 builder.Services.AddScoped<ProofOfPlayService>();
 builder.Services.AddScoped<DeliveryReportService>();
@@ -632,6 +634,26 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
         ? Results.UnprocessableEntity(new { error = "Playlist not found or cannot be published." })
         : Results.Ok(published);
 }).RequireAuthorization(AuthPolicies.AdminPolicy);
+
+var programmatic = app.MapGroup("/api/programmatic");
+
+programmatic.MapPost("/simulator/forecast", async (
+    SimulatorForecastRequest request,
+    SimulatorForecastService service,
+    CancellationToken cancellationToken) =>
+{
+    if (request.DateFrom > request.DateTo)
+    {
+        return Results.BadRequest(new { error = "DateFrom must be less than or equal to DateTo." });
+    }
+
+    if (request.CreativeDurationSeconds < 1)
+    {
+        return Results.BadRequest(new { error = "CreativeDurationSeconds must be at least 1." });
+    }
+
+    return Results.Ok(await service.ForecastAsync(request, cancellationToken));
+});
 
 var playbackReports = app.MapGroup("/api/playback-reports");
 

@@ -51,6 +51,7 @@ export {
   getReportsOverview,
   getReportsScreens,
 } from "@/lib/api/reports";
+export { runSimulatorForecast } from "@/lib/api/simulator";
 export {
   createScreen,
   getScreens,
