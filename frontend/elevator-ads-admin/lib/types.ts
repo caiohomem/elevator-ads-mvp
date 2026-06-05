@@ -185,6 +185,31 @@ export interface ApiCampaign {
   updatedAt: string;
 }
 
+export interface SimulatorForecastRequest {
+  advertiserId?: string | null;
+  dateFrom: string;
+  dateTo: string;
+  cities?: string[] | null;
+  buildingTypes?: DeliveryBuildingType[] | null;
+  screenOrientations?: DeliveryScreenOrientation[] | null;
+  creativeDurationSeconds: number;
+  budget?: number | null;
+  campaignObjective?: string | null;
+  notes?: string | null;
+}
+
+export interface SimulatorForecastResponse {
+  eligibleScreens: number;
+  eligibleBuildings: number;
+  estimatedPlays: number;
+  estimatedAudience: number;
+  estimatedCost: number;
+  availableCapacity: number;
+  warnings: string[];
+  conflicts: string[];
+  suggestedNextAction: string;
+}
+
 export interface ApiDailyPlaylistItem {
   id: string;
   dailyPlaylistId: string;

@@ -10,6 +10,7 @@ export interface TranslationDictionary {
     advertisers: string;
     creatives: string;
     campaigns: string;
+    programmaticSimulator: string;
     playlists: string;
     reports: string;
     settings: string;
@@ -81,6 +82,7 @@ export interface TranslationDictionary {
     advertisers: { title: string; description: string };
     creatives: { title: string; description: string };
     campaigns: { title: string; description: string };
+    programmaticSimulator: { title: string; description: string };
     playlists: {
       title: string;
       description: string;
@@ -152,6 +154,41 @@ export interface TranslationDictionary {
     playedSeconds: string;
     plays: string;
     rangeLabel: string;
+  };
+  simulator: {
+    note: string;
+    advertiser: string;
+    advertiserPlaceholder: string;
+    existingAdvertisers: string;
+    dateFrom: string;
+    dateTo: string;
+    cities: string;
+    citiesHelp: string;
+    buildingTypes: string;
+    screenOrientations: string;
+    creativeDurationSeconds: string;
+    budget: string;
+    campaignObjective: string;
+    objectivePlaceholder: string;
+    notes: string;
+    notesPlaceholder: string;
+    runForecast: string;
+    runningForecast: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    resultsTitle: string;
+    eligibleScreens: string;
+    eligibleBuildings: string;
+    estimatedPlays: string;
+    estimatedAudience: string;
+    estimatedCost: string;
+    availableCapacity: string;
+    warnings: string;
+    conflicts: string;
+    suggestedNextAction: string;
+    audienceEstimate: string;
+    capacityEstimate: string;
+    optional: string;
   };
   settings: {
     themePreference: string;
@@ -264,6 +301,7 @@ export const en: TranslationDictionary = {
     advertisers: "Advertisers",
     creatives: "Creatives",
     campaigns: "Campaigns",
+    programmaticSimulator: "Programmatic Simulator",
     playlists: "Playlists",
     reports: "Reports",
     settings: "Settings",
@@ -351,6 +389,11 @@ export const en: TranslationDictionary = {
       title: "Campaigns",
       description: "Flight windows, budgets, and targeting constraints.",
     },
+    programmaticSimulator: {
+      title: "Programmatic simulator",
+      description:
+        "Simulate how an external buyer would forecast scheduled elevator media before any real external API or OpenRTB flow exists.",
+    },
     playlists: {
       title: "Daily playlists",
       description: "Published sequences distributed to elevator screens each day.",
@@ -429,6 +472,41 @@ export const en: TranslationDictionary = {
     playedSeconds: "Played seconds",
     plays: "Plays",
     rangeLabel: "Range",
+  },
+  simulator: {
+    note: "This simulator forecasts scheduled daily playlist buying only. It is not OpenRTB, real-time bidding, or live next-ad serving.",
+    advertiser: "Advertiser",
+    advertiserPlaceholder: "Optional buyer or advertiser identifier",
+    existingAdvertisers: "Known advertisers",
+    dateFrom: "Date from",
+    dateTo: "Date to",
+    cities: "Cities",
+    citiesHelp: "Use commas to target multiple cities. Leave blank to include all cities.",
+    buildingTypes: "Building types",
+    screenOrientations: "Screen orientations",
+    creativeDurationSeconds: "Creative duration (seconds)",
+    budget: "Budget",
+    campaignObjective: "Campaign objective",
+    objectivePlaceholder: "Awareness, launches, leasing, footfall...",
+    notes: "Notes",
+    notesPlaceholder: "Optional buyer notes for the simulated request",
+    runForecast: "Run forecast",
+    runningForecast: "Running forecast...",
+    emptyTitle: "No forecast yet",
+    emptyDescription: "Choose dates and targeting criteria to estimate reach, plays, cost, and capacity for a scheduled elevator playlist buy.",
+    resultsTitle: "Forecast result",
+    eligibleScreens: "Eligible screens",
+    eligibleBuildings: "Eligible buildings",
+    estimatedPlays: "Estimated plays",
+    estimatedAudience: "Estimated audience",
+    estimatedCost: "Estimated cost",
+    availableCapacity: "Available capacity",
+    warnings: "Warnings",
+    conflicts: "Conflicts",
+    suggestedNextAction: "Suggested next action",
+    audienceEstimate: "Audience uses building-level daily estimates when available.",
+    capacityEstimate: "Displayed as a percentage of placeholder unclaimed playlist capacity for the MVP.",
+    optional: "Optional",
   },
   settings: {
     themePreference: "Theme preference",

@@ -2,9 +2,11 @@
 
 Elevator Ads MVP is a programmatic DOOH advertising platform for elevator screens.
 
-This repository contains the full-stack scaffold and the initial feature set: Building management, Screen management, Advertisers, Creatives, Campaigns, Campaign Delivery Constraints, Daily Playlist generation, Playlist Download, Proof-of-Play reporting, and Delivery Reports. Database integration uses PostgreSQL with Entity Framework Core. Authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
+This repository contains the full-stack scaffold and the initial feature set: Building management, Screen management, Advertisers, Creatives, Campaigns, Campaign Delivery Constraints, Daily Playlist generation, Playlist Download, Proof-of-Play reporting, Delivery Reports, and an External Buyer Simulator for forecast requests. Database integration uses PostgreSQL with Entity Framework Core. Authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
 
 The MVP delivery model is scheduled DOOH playlist delivery. Screens and players download a daily playlist, execute the same programmed sequence throughout the day, and report playback after execution rather than requesting ads in real time.
+
+The External Buyer Simulator is a DSP/SSP-style forecasting surface adapted to that scheduled delivery model. It allows a simulated external buyer to estimate eligible inventory, plays, audience, cost, and rough capacity before API keys, external buyer authentication, or any OpenRTB adapter exist.
 
 ## Tech Stack
 
@@ -149,6 +151,6 @@ The first delivery model for Elevator Ads MVP is not real-time ad serving. Each 
 
 ## Future Roadmap Summary
 
-Future phases include screen management, advertiser and campaign management, creative management, campaign delivery constraints, daily playlist generation, playlist download, proof-of-play tracking, reports, and only later SSP/DSP models and an OpenRTB adapter.
+Future phases include screen management, advertiser and campaign management, creative management, campaign delivery constraints, daily playlist generation, playlist download, proof-of-play tracking, reports, richer external buyer APIs, and only later SSP/DSP models with API keys and an OpenRTB adapter.
 
 See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.
