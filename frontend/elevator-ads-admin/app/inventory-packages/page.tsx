@@ -46,6 +46,11 @@ export default function InventoryPackagesPage() {
       ? buildingsState.data.map((building) => [building.id, building.name] as const)
       : [],
   );
+  const screenNames = new Map(
+    screensState.status === "ok"
+      ? screensState.data.map((screen) => [screen.id, screen.name || screen.externalCode] as const)
+      : [],
+  );
 
   const closeModal = () => {
     setSelected(null);
@@ -240,6 +245,7 @@ export default function InventoryPackagesPage() {
           <InventoryPackageDetail
             inventoryPackage={selected}
             buildingNames={buildingNames}
+            screenNames={screenNames}
             onDelete={handleDelete}
             deleteLabel={forms.remove}
             labels={page.details}
@@ -256,6 +262,7 @@ export default function InventoryPackagesPage() {
 function InventoryPackageDetail({
   inventoryPackage,
   buildingNames,
+  screenNames,
   onDelete,
   deleteLabel,
   labels,
@@ -265,6 +272,7 @@ function InventoryPackageDetail({
 }: {
   inventoryPackage: ApiInventoryPackage;
   buildingNames: Map<string, string>;
+  screenNames: Map<string, string>;
   onDelete: (inventoryPackage: ApiInventoryPackage) => Promise<void>;
   deleteLabel: string;
   labels: {
@@ -370,7 +378,10 @@ function InventoryPackageDetail({
         label={labels.buildingIds}
         value={inventoryPackage.buildingIds.map((id) => buildingNames.get(id) ?? id).join(", ") || "—"}
       />
-      <DetailBlock label={labels.screenIds} value={inventoryPackage.screenIds.join(", ") || "—"} />
+      <DetailBlock
+        label={labels.screenIds}
+        value={inventoryPackage.screenIds.map((id) => screenNames.get(id) ?? id).join(", ") || "—"}
+      />
 
       <section className="rounded-[28px] border border-[var(--panel-border)] bg-white/50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:bg-white/[0.04]">
         <h3 className="text-lg font-semibold text-[var(--foreground)]">{pageLabels.matchingScreensTitle}</h3>

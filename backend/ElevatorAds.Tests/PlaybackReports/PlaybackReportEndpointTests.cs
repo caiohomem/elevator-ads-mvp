@@ -42,10 +42,13 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.NotNull(report);
         Assert.NotEqual(Guid.Empty, report!.Id);
         Assert.Equal(screen.Id, report.ScreenId);
+        Assert.Equal(screen.Name, report.ScreenName);
         Assert.Equal(generated.Id, report.PlaylistId);
         Assert.Equal(item.Id, report.PlaylistItemId);
         Assert.Equal(campaign.Id, report.CampaignId);
+        Assert.Equal(campaign.Name, report.CampaignName);
         Assert.Equal(creative.Id, report.CreativeId);
+        Assert.Equal(creative.Name, report.CreativeName);
         Assert.Equal(15, report.DurationSeconds);
     }
 
@@ -198,7 +201,10 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(1, reports!.Items.Count);
         Assert.Equal(1, reports.TotalItems);
         Assert.Equal(1, reports.TotalPages);
-        Assert.Contains(reports.Items, report => report.Id == submitted!.Id);
+        var listed = Assert.Single(reports.Items, report => report.Id == submitted!.Id);
+        Assert.Equal(screen.Name, listed.ScreenName);
+        Assert.Equal(campaign.Name, listed.CampaignName);
+        Assert.Equal(creative.Name, listed.CreativeName);
     }
 
     [Fact]
@@ -589,10 +595,13 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     private sealed record PlaybackReportDto(
         Guid Id,
         Guid ScreenId,
+        string ScreenName,
         Guid PlaylistId,
         Guid PlaylistItemId,
         Guid CampaignId,
+        string CampaignName,
         Guid CreativeId,
+        string CreativeName,
         DateTime PlayedAt,
         int DurationSeconds,
         DateTime CreatedAt);

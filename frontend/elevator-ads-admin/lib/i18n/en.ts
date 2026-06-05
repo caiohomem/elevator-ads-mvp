@@ -81,7 +81,14 @@ export interface TranslationDictionary {
   };
   pages: {
     buildings: { title: string; description: string };
-    screens: { title: string; description: string };
+    screens: {
+      title: string;
+      description: string;
+      columns: {
+        resolution: string;
+        lastSeen: string;
+      };
+    };
     advertisers: { title: string; description: string };
     advertiserApiKeys: {
       title: string;
@@ -113,7 +120,13 @@ export interface TranslationDictionary {
       };
       statuses: Record<"Active" | "Revoked" | "Expired", string>;
     };
-    creatives: { title: string; description: string };
+    creatives: {
+      title: string;
+      description: string;
+      columns: {
+        approvalStatus: string;
+      };
+    };
     campaigns: { title: string; description: string };
     bookingRequests: {
       title: string;
@@ -579,6 +592,10 @@ export const en: TranslationDictionary = {
     screens: {
       title: "Screens",
       description: "Device health, playlist assignment, and operational status.",
+      columns: {
+        resolution: "Resolution",
+        lastSeen: "Last seen",
+      },
     },
     advertisers: {
       title: "Advertisers",
@@ -621,6 +638,9 @@ export const en: TranslationDictionary = {
     creatives: {
       title: "Creatives",
       description: "Review-ready assets prepared for elevator screen delivery.",
+      columns: {
+        approvalStatus: "Approval status",
+      },
     },
     campaigns: {
       title: "Campaigns",

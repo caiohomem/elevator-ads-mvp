@@ -35,10 +35,6 @@ function defaultRange(): { from: string; to: string } {
   return { from: toIsoDate(sevenDaysAgo), to: toIsoDate(today) };
 }
 
-function shortId(id: string): string {
-  return id.length > 8 ? `${id.slice(0, 8)}...` : id;
-}
-
 function formatPlayedAt(value: string): string {
   return value.replace("T", " ").slice(0, 19);
 }
@@ -84,7 +80,7 @@ export default function ReportsPage() {
     {
       key: "id",
       header: idHeader,
-      render: (row) => <span className="font-mono text-xs">{shortId(row.id)}</span>,
+      render: (row) => row.name,
     },
     {
       key: "plays",
@@ -111,17 +107,17 @@ export default function ReportsPage() {
     {
       key: "screenId",
       header: labels.screenId,
-      render: (row) => <span className="font-mono text-xs">{shortId(row.screenId)}</span>,
+      render: (row) => row.screenName,
     },
     {
       key: "campaignId",
       header: labels.campaignId,
-      render: (row) => <span className="font-mono text-xs">{shortId(row.campaignId)}</span>,
+      render: (row) => row.campaignName,
     },
     {
       key: "creativeId",
       header: labels.creativeId,
-      render: (row) => <span className="font-mono text-xs">{shortId(row.creativeId)}</span>,
+      render: (row) => row.creativeName,
     },
     {
       key: "durationSeconds",

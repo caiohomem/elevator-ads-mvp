@@ -18,10 +18,18 @@ import type { ApiScreen } from "@/lib/types";
 
 export default function ScreensPage() {
   const { dictionary } = useTranslation();
+  const forms = dictionary.forms;
+  const page = dictionary.pages.screens;
   const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getScreensPaged, "screens");
   const buildingsState = useApiData(getBuildingsList);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiScreen | null>(null);
+
+  const buildingNames = new Map(
+    buildingsState.status === "ok"
+      ? buildingsState.data.map((building) => [building.id, building.name] as const)
+      : [],
+  );
 
   const closeModal = () => {
     setModalOpen(false);
@@ -44,23 +52,23 @@ export default function ScreensPage() {
   };
 
   const columns: TableColumn<ApiScreen>[] = [
-    { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
-    { key: "buildingId", header: "Building", render: (row) => row.buildingId },
+    { key: "name", header: forms.screen.name, render: (row) => <span className="font-semibold">{row.name}</span> },
+    { key: "buildingId", header: forms.screen.buildingId, render: (row) => buildingNames.get(row.buildingId) ?? "—" },
     {
       key: "resolution",
-      header: "Resolution",
+      header: page.columns.resolution,
       render: (row) => <span className="font-mono text-xs">{`${row.resolutionWidth}x${row.resolutionHeight}`}</span>,
     },
-    { key: "orientation", header: "Orientation", render: (row) => row.orientation },
-    { key: "status", header: "Status", render: (row) => <StatusBadge status={row.status} /> },
+    { key: "orientation", header: forms.screen.orientation, render: (row) => row.orientation },
+    { key: "status", header: dictionary.forms.advertiser.status, render: (row) => <StatusBadge status={row.status} /> },
     {
       key: "lastSeen",
-      header: "Last seen",
+      header: page.columns.lastSeen,
       render: (row) => <span className="font-mono text-xs">{row.lastSeenAt ?? "-"}</span>,
     },
     {
       key: "externalCode",
-      header: "External code",
+      header: forms.screen.externalCode,
       render: (row) => <span className="font-mono text-xs">{row.externalCode}</span>,
     },
     {

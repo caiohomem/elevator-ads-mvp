@@ -24,6 +24,11 @@ export default function CampaignsPage() {
 
   const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getCampaignsPaged, "campaigns");
   const advertisersState = useApiData(getAdvertisersList);
+  const advertiserNames = new Map(
+    advertisersState.status === "ok"
+      ? advertisersState.data.map((advertiser) => [advertiser.id, advertiser.name] as const)
+      : [],
+  );
 
   const [campaignModalOpen, setCampaignModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiCampaign | null>(null);
@@ -61,23 +66,23 @@ export default function CampaignsPage() {
   };
 
   const columns: TableColumn<ApiCampaign>[] = [
-    { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
-    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserId },
-    { key: "status", header: "Status", render: (row) => <StatusBadge status={row.status} /> },
+    { key: "name", header: forms.campaign.name, render: (row) => <span className="font-semibold">{row.name}</span> },
+    { key: "advertiser", header: forms.campaign.advertiserId, render: (row) => advertiserNames.get(row.advertiserId) ?? "—" },
+    { key: "status", header: forms.campaign.status, render: (row) => <StatusBadge status={row.status} /> },
     {
       key: "startDate",
-      header: "Start date",
+      header: forms.campaign.startDate,
       render: (row) => <span className="font-mono text-xs">{row.startDate}</span>,
     },
     {
       key: "endDate",
-      header: "End date",
+      header: forms.campaign.endDate,
       render: (row) => <span className="font-mono text-xs">{row.endDate}</span>,
     },
-    { key: "budget", header: "Daily budget", render: (row) => (row.dailyBudget === null ? "-" : `€${row.dailyBudget}`) },
+    { key: "budget", header: forms.campaign.dailyBudget, render: (row) => (row.dailyBudget === null ? "-" : `€${row.dailyBudget}`) },
     {
       key: "totalBudget",
-      header: "Total budget",
+      header: forms.campaign.totalBudget,
       render: (row) => (row.totalBudget === null ? "-" : `€${row.totalBudget}`),
     },
     {
