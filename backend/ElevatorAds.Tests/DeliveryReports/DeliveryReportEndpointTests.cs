@@ -17,6 +17,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_NoData_ReturnsZeroTotalsAndEmptyGroups()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/overview?date=2026-01-01");
@@ -35,6 +36,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_WithData_ReturnsTotals()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var date = new DateOnly(2026, 2, 10);
         var screenId = Guid.NewGuid();
@@ -64,6 +66,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_GroupsByCampaignScreenAndCreative()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var date = new DateOnly(2026, 3, 15);
         var firstScreen = Guid.NewGuid();
@@ -96,6 +99,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_ExcludesEventsOutsideDate()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var date = new DateOnly(2026, 4, 1);
         var screenId = Guid.NewGuid();
@@ -117,6 +121,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_MissingDate_ReturnsUnprocessableEntity()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/overview");
@@ -127,6 +132,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetOverview_InvalidDate_ReturnsUnprocessableEntity()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/overview?date=not-a-date");
@@ -137,6 +143,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetCampaigns_GroupsByCampaign()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var firstCampaign = Guid.NewGuid();
         var secondCampaign = Guid.NewGuid();
@@ -168,6 +175,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetCampaigns_FiltersByDateRange()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var campaignId = Guid.NewGuid();
         var screenId = Guid.NewGuid();
@@ -193,6 +201,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetCampaigns_EmptyRange_ReturnsEmptyResults()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/campaigns?from=2026-06-01&to=2026-06-02");
@@ -208,6 +217,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetCampaigns_MissingDateRange_ReturnsUnprocessableEntity()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/campaigns?from=2026-06-01");
@@ -218,6 +228,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetCampaigns_ToBeforeFrom_ReturnsUnprocessableEntity()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/campaigns?from=2026-06-05&to=2026-06-01");
@@ -228,6 +239,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetScreens_GroupsByScreen()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var firstScreen = Guid.NewGuid();
         var secondScreen = Guid.NewGuid();
@@ -256,6 +268,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetScreens_FiltersByDateRange()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var screenId = Guid.NewGuid();
         var campaignId = Guid.NewGuid();
@@ -281,6 +294,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetScreens_EmptyRange_ReturnsEmptyResults()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/screens?from=2026-08-01&to=2026-08-02");
@@ -296,6 +310,7 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetScreens_MissingDateRange_ReturnsUnprocessableEntity()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
 
         var response = await client.GetAsync("/api/reports/screens?from=2026-08-01");
@@ -305,9 +320,8 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
 
     private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
-        return (client, factory);
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, _factory);
     }
 
     private static async Task SeedEventsAsync(TestWebApplicationFactory factory, params ProofOfPlayEvent[] events)

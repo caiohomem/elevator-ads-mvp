@@ -210,6 +210,21 @@ export interface ApiBookingRequest {
   updatedAt: string;
 }
 
+export interface ApiCampaignForecast {
+  id: string;
+  bookingRequestId: string;
+  eligibleScreens: number;
+  eligibleBuildings: number;
+  estimatedPlays: number;
+  estimatedAudience: number;
+  estimatedCost: number;
+  availableCapacity: number;
+  warnings: string[];
+  conflicts: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SimulatorForecastRequest {
   advertiserId?: string | null;
   dateFrom: string;

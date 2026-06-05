@@ -15,6 +15,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreateCampaign_ReturnsCreated()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCampaignRequest(
@@ -47,6 +48,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task ListCampaigns_ReturnsPagedResult_AndSupportsFiltering()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var draft = await CreateCampaignAsync(client, "Draft Campaign", "Draft");
         var active = await CreateCampaignAsync(client, "Active Campaign", "Active");
@@ -86,6 +88,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetCampaignById_ReturnsOk()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCampaignAsync(client);
 
@@ -102,6 +105,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task UpdateCampaign_ReturnsOk()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCampaignAsync(client);
         var request = new UpdateCampaignRequest(
@@ -132,6 +136,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task DeleteCampaign_ReturnsNoContent()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCampaignAsync(client);
 
@@ -145,6 +150,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreateCampaign_MissingName_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCampaignRequest(
@@ -165,6 +171,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreateCampaign_InvalidDateRange_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCampaignRequest(
@@ -185,6 +192,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreateCampaign_NegativeBudget_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCampaignRequest(
@@ -202,7 +210,7 @@ public class CampaignEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
     {

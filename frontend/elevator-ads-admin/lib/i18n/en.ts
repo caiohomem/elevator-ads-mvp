@@ -113,6 +113,23 @@ export interface TranslationDictionary {
         campaignObjective: string;
         notes: string;
       };
+      forecast: {
+        title: string;
+        generate: string;
+        generating: string;
+        empty: string;
+        loadError: string;
+        eligibleScreens: string;
+        eligibleBuildings: string;
+        estimatedPlays: string;
+        estimatedAudience: string;
+        estimatedCost: string;
+        availableCapacity: string;
+        warnings: string;
+        conflicts: string;
+        disclaimer: string;
+        updatedAt: string;
+      };
     };
     programmaticSimulator: { title: string; description: string };
     playlists: {
@@ -475,6 +492,23 @@ export const en: TranslationDictionary = {
         budget: "Budget",
         campaignObjective: "Campaign objective",
         notes: "Notes",
+      },
+      forecast: {
+        title: "Campaign forecast",
+        generate: "Generate forecast",
+        generating: "Generating...",
+        empty: "No forecast yet.",
+        loadError: "Unable to load forecast.",
+        eligibleScreens: "Eligible screens",
+        eligibleBuildings: "Eligible buildings",
+        estimatedPlays: "Estimated plays",
+        estimatedAudience: "Estimated audience",
+        estimatedCost: "Estimated cost",
+        availableCapacity: "Available capacity",
+        warnings: "Warnings",
+        conflicts: "Conflicts",
+        disclaimer: "Estimate only. Not proof of play.",
+        updatedAt: "Updated at",
       },
     },
     programmaticSimulator: {

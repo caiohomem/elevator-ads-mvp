@@ -17,6 +17,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_ReturnsCreatedWithResolvedIds()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -51,6 +52,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_UnknownScreen_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new CreatePlaybackReportRequest(
             Guid.NewGuid(),
@@ -66,6 +68,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_PlaylistFromOtherScreen_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -91,6 +94,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_InvalidPlaylistItem_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -114,6 +118,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_MissingPlayedAt_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -138,6 +143,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitPlaybackReport_NonPositiveDuration_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -162,6 +168,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task ListPlaybackReportsByScreen_ReturnsPagedResult()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -197,6 +204,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task ListPlaybackReportsByCampaign_ReturnsPagedResult()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -232,6 +240,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task ListAllPlaybackReports_ReturnsPagedResult()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -267,6 +276,7 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PlaybackReportLists_RejectInvalidPagination()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
 
         var response = await client.GetAsync("/api/playback-reports?page=0");
@@ -276,9 +286,8 @@ public class PlaybackReportEndpointTests : IClassFixture<TestWebApplicationFacto
 
     private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
-        return (client, factory);
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, _factory);
     }
 
     private HttpClient CreateClient() => _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());

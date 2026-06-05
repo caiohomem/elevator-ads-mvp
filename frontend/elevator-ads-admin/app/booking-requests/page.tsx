@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookingRequestForm } from "@/components/BookingRequestForm";
 import { ClientPageFrame } from "@/components/ClientPageFrame";
 import { DataTable, type TableColumn } from "@/components/DataTable";
@@ -12,7 +12,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { TableFilters } from "@/components/TableFilters";
 import {
   approveBookingRequest,
+  generateBookingRequestForecast,
   getAdvertisersList,
+  getBookingRequestForecast,
   getBookingRequestsPaged,
   rejectBookingRequest,
   submitBookingRequest,
@@ -20,7 +22,7 @@ import {
 import { useApiData } from "@/lib/api/useApiData";
 import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
-import type { ApiBookingRequest, BookingRequestStatus } from "@/lib/types";
+import type { ApiBookingRequest, ApiCampaignForecast, BookingRequestStatus } from "@/lib/types";
 
 type ModalMode = "create" | "edit" | "view";
 type StatusAction = "submit" | "approve" | "reject";
@@ -287,6 +289,7 @@ export default function BookingRequestsPage() {
             advertiserName={advertiserNames.get(selected.advertiserId) ?? selected.advertiserId}
             statuses={page.statuses}
             labels={page.details}
+            forecastLabels={page.forecast}
           />
         ) : null}
       </Modal>
@@ -299,6 +302,7 @@ function BookingRequestDetail({
   advertiserName,
   statuses,
   labels,
+  forecastLabels,
 }: {
   bookingRequest: ApiBookingRequest;
   advertiserName: string;
@@ -314,6 +318,23 @@ function BookingRequestDetail({
     budget: string;
     campaignObjective: string;
     notes: string;
+  };
+  forecastLabels: {
+    title: string;
+    generate: string;
+    generating: string;
+    empty: string;
+    loadError: string;
+    eligibleScreens: string;
+    eligibleBuildings: string;
+    estimatedPlays: string;
+    estimatedAudience: string;
+    estimatedCost: string;
+    availableCapacity: string;
+    warnings: string;
+    conflicts: string;
+    disclaimer: string;
+    updatedAt: string;
   };
 }) {
   return (
@@ -339,7 +360,178 @@ function BookingRequestDetail({
       <DetailBlock label={labels.buildingTypes} value={bookingRequest.buildingTypes.join(", ") || "—"} />
       <DetailBlock label={labels.screenOrientations} value={bookingRequest.screenOrientations.join(", ") || "—"} />
       <DetailBlock label={labels.notes} value={bookingRequest.notes || "—"} />
+      <BookingRequestForecastPanel bookingRequestId={bookingRequest.id} labels={forecastLabels} />
     </div>
+  );
+}
+
+function BookingRequestForecastPanel({
+  bookingRequestId,
+  labels,
+}: {
+  bookingRequestId: string;
+  labels: {
+    title: string;
+    generate: string;
+    generating: string;
+    empty: string;
+    loadError: string;
+    eligibleScreens: string;
+    eligibleBuildings: string;
+    estimatedPlays: string;
+    estimatedAudience: string;
+    estimatedCost: string;
+    availableCapacity: string;
+    warnings: string;
+    conflicts: string;
+    disclaimer: string;
+    updatedAt: string;
+  };
+}) {
+  const [forecast, setForecast] = useState<ApiCampaignForecast | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadForecast = async () => {
+    setLoading(true);
+    setError(null);
+    setForecast(null);
+
+    const result = await getBookingRequestForecast(bookingRequestId);
+
+    if (result.ok) {
+      setForecast(result.data);
+      setLoading(false);
+      return;
+    }
+
+    if (result.status === 404) {
+      setForecast(null);
+      setLoading(false);
+      return;
+    }
+
+    setError(result.message || labels.loadError);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    let active = true;
+
+    queueMicrotask(() => {
+      setLoading(true);
+      setError(null);
+      setForecast(null);
+
+      getBookingRequestForecast(bookingRequestId)
+        .then((result) => {
+          if (!active) {
+            return;
+          }
+
+          if (result.ok) {
+            setForecast(result.data);
+            return;
+          }
+
+          if (result.status === 404) {
+            setForecast(null);
+            return;
+          }
+
+          setError(result.message || labels.loadError);
+        })
+        .catch((caughtError) => {
+          if (!active) {
+            return;
+          }
+
+          setError(caughtError instanceof Error ? caughtError.message : labels.loadError);
+        })
+        .finally(() => {
+          if (active) {
+            setLoading(false);
+          }
+        });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [bookingRequestId, labels.loadError]);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    setError(null);
+
+    const result = await generateBookingRequestForecast(bookingRequestId);
+
+    setGenerating(false);
+
+    if (!result.ok) {
+      setError(result.message || labels.loadError);
+      return;
+    }
+
+    setForecast(result.data);
+  };
+
+  return (
+    <section className="rounded-[28px] border border-[var(--panel-border)] bg-white/50 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.08)] dark:bg-white/[0.04]">
+      <div className="flex flex-col gap-3 border-b border-[var(--panel-border)] pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-[var(--foreground)]">{labels.title}</h3>
+          <p className="mt-1 text-sm text-[var(--muted)]">{labels.disclaimer}</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={generating}
+          className="rounded-full border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-sky-300"
+        >
+          {generating ? labels.generating : labels.generate}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="pt-4">
+          <LoadingState />
+        </div>
+      ) : null}
+
+      {!loading && error ? (
+        <div className="pt-4">
+          <ErrorState message={error} onRetry={loadForecast} />
+        </div>
+      ) : null}
+
+      {!loading && !error && !forecast ? (
+        <div className="pt-4 text-sm text-[var(--muted)]">{labels.empty}</div>
+      ) : null}
+
+      {!loading && !error && forecast ? (
+        <div className="space-y-4 pt-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <DetailItem label={labels.eligibleScreens} value={formatNumber(forecast.eligibleScreens)} />
+            <DetailItem label={labels.eligibleBuildings} value={formatNumber(forecast.eligibleBuildings)} />
+            <DetailItem label={labels.estimatedPlays} value={formatNumber(forecast.estimatedPlays)} />
+            <DetailItem label={labels.estimatedAudience} value={formatNumber(forecast.estimatedAudience)} />
+            <DetailItem label={labels.estimatedCost} value={formatCurrency(forecast.estimatedCost)} />
+            <DetailItem label={labels.availableCapacity} value={formatPercent(forecast.availableCapacity)} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <StringListCard label={labels.warnings} items={forecast.warnings} />
+            <StringListCard label={labels.conflicts} items={forecast.conflicts} />
+          </div>
+
+          <p className="text-xs text-[var(--muted)]">
+            {labels.updatedAt}: {formatDateTime(forecast.updatedAt)}
+          </p>
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -348,6 +540,23 @@ function DetailItem({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl border border-[var(--panel-border)] bg-white/40 px-4 py-3 dark:bg-white/[0.03]">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">{label}</p>
       <p className="mt-2 text-sm text-[var(--foreground)]">{value}</p>
+    </div>
+  );
+}
+
+function StringListCard({ label, items }: { label: string; items: string[] }) {
+  return (
+    <div className="rounded-2xl border border-[var(--panel-border)] bg-white/40 px-4 py-3 dark:bg-white/[0.03]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">{label}</p>
+      {items.length > 0 ? (
+        <ul className="mt-2 space-y-2 text-sm leading-6 text-[var(--foreground)]">
+          {items.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 text-sm text-[var(--muted)]">—</p>
+      )}
     </div>
   );
 }
@@ -367,6 +576,18 @@ function formatDate(value: string) {
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(value);
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat().format(value);
+}
+
+function formatPercent(value: number) {
+  return new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 0 }).format(value);
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString();
 }
 
 function getStatusLabel(

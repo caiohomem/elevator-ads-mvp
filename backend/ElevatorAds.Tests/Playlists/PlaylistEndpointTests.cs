@@ -15,6 +15,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GeneratePlaylists_ReturnsGeneratedPlaylist()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var screen = await CreateScreenAsync(client);
         var campaign = await CreateCampaignAsync(client, CampaignStatus: "Active");
@@ -35,6 +36,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetPlaylists_ReturnsPagedResult_AndSupportsStatusFiltering()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var screenOne = await CreateScreenAsync(client);
         var screenTwo = await CreateScreenAsync(client);
@@ -73,6 +75,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetPlaylistById_AndPublishPlaylist_ReturnExpectedPayloads()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var screen = await CreateScreenAsync(client);
         var campaign = await CreateCampaignAsync(client, CampaignStatus: "Active");
@@ -98,6 +101,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetScreenPlaylists_ByDate_ReturnsPlaylist()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var screen = await CreateScreenAsync(client);
         var campaign = await CreateCampaignAsync(client, CampaignStatus: "Active");
@@ -119,6 +123,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GeneratePlaylists_WithoutDate_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
 
         var response = await client.PostAsync("/api/playlists/generate", null);
@@ -129,6 +134,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetScreenPlaylists_WithMissingScreen_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
 
         var response = await client.GetAsync($"/api/screens/{Guid.NewGuid()}/playlists?date=2026-06-01");
@@ -136,7 +142,7 @@ public class PlaylistEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
     private async Task<DailyPlaylistDto> GenerateForScreenAsync(HttpClient client, Guid screenId)
     {

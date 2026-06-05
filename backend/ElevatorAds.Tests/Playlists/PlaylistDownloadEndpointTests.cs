@@ -17,6 +17,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task GetCurrentPlaylist_ReturnsPublishedPlaylist()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var screen = await CreateScreenAsync(client);
@@ -42,6 +43,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task GetPlaylistByDate_ReturnsPublishedPlaylist()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -63,6 +65,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task GetPlaylistByDate_ReturnsLatestPublishedVersion()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -86,6 +89,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task GetPlaylistByDate_DraftPlaylist_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -102,6 +106,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task MarkPlaylistDownloaded_ReturnsDownloadedStatus()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -123,6 +128,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task MarkPlaylistDownloaded_WrongScreen_Returns404()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -141,6 +147,7 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task GetPlaylistItems_AreInDeterministicOrder()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClient();
         var date = new DateOnly(2026, 6, 1);
         var screen = await CreateScreenAsync(client);
@@ -175,9 +182,8 @@ public class PlaylistDownloadEndpointTests : IClassFixture<TestWebApplicationFac
 
     private (HttpClient Client, TestWebApplicationFactory Factory) CreateClient()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
-        return (client, factory);
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        return (client, _factory);
     }
 
     private async Task<DailyPlaylistDto> GenerateForScreenAsync(HttpClient client, Guid screenId, DateOnly date)

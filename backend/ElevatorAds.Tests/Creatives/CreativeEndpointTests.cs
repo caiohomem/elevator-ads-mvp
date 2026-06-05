@@ -15,6 +15,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostCreative_CreatesCreative()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCreativeRequest(
@@ -42,6 +43,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetCreatives_ReturnsPagedResult_AndSupportsFiltering()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var alpha = await CreateCreativeAsync(client, "Alpha Promo");
         var beta = await CreateCreativeAsync(client, "Beta Promo");
@@ -84,6 +86,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetCreativeById_ReturnsCreative()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
 
@@ -100,6 +103,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PutCreative_UpdatesCreative()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
         var request = new UpdateCreativeRequest(
@@ -124,6 +128,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task DeleteCreative_RemovesCreative()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
 
@@ -137,6 +142,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task SubmitForReview_TransitionsToPendingReview()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
 
@@ -152,6 +158,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task ApproveCreative_TransitionsToApproved()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
         await client.PostAsync($"/api/creatives/{created.Id}/submit-for-review", null);
@@ -168,6 +175,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task RejectCreative_TransitionsToRejected()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateCreativeAsync(client);
         await client.PostAsync($"/api/creatives/{created.Id}/submit-for-review", null);
@@ -184,6 +192,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostCreative_MissingMediaUrl_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCreativeRequest(
@@ -201,6 +210,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostCreative_InvalidDuration_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateCreativeRequest(
@@ -215,7 +225,7 @@ public class CreativeEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
     {

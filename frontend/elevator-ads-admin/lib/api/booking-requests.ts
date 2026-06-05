@@ -1,5 +1,5 @@
 import { apiFetch, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
-import type { ApiBookingRequest, PagedQuery, PagedResult } from "@/lib/types";
+import type { ApiBookingRequest, ApiCampaignForecast, PagedQuery, PagedResult } from "@/lib/types";
 
 const bookingRequestsEndpoint = "/api/booking-requests";
 
@@ -56,4 +56,12 @@ export async function approveBookingRequest(id: string): Promise<ApiResult<ApiBo
 
 export async function rejectBookingRequest(id: string): Promise<ApiResult<ApiBookingRequest>> {
   return apiMutate<Record<string, never>, ApiBookingRequest>(`${bookingRequestsEndpoint}/${id}/reject`, "POST", {});
+}
+
+export async function getBookingRequestForecast(id: string): Promise<ApiResult<ApiCampaignForecast>> {
+  return apiFetch<ApiCampaignForecast>(`${bookingRequestsEndpoint}/${id}/forecast`);
+}
+
+export async function generateBookingRequestForecast(id: string): Promise<ApiResult<ApiCampaignForecast>> {
+  return apiMutate<Record<string, never>, ApiCampaignForecast>(`${bookingRequestsEndpoint}/${id}/forecast`, "POST", {});
 }
