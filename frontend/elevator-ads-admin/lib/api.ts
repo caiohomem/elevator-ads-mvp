@@ -62,6 +62,7 @@ export {
   getDailyPlaylistsList,
   getDailyPlaylistsPaged,
   publishPlaylist,
+  runPlaylistSimulate,
 } from "@/lib/api/playlists";
 export {
   getProofOfPlayEvents,
