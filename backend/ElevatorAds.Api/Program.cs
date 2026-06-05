@@ -102,6 +102,7 @@ builder.Services.AddScoped<CampaignDeliveryConstraintsService>();
 builder.Services.AddScoped<IDailyPlaylistRepository, EfDailyPlaylistRepository>();
 builder.Services.AddScoped<CampaignEligibilityService>();
 builder.Services.AddScoped<PlaylistGenerationService>();
+builder.Services.AddScoped<PlaylistSimulatorService>();
 builder.Services.AddScoped<PlaylistDownloadService>();
 builder.Services.AddScoped<SimulatorForecastService>();
 builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventRepository>();
@@ -787,6 +788,49 @@ playlists.MapPost("/{id:guid}/publish", async (Guid id, PlaylistGenerationServic
         ? Results.UnprocessableEntity(new { error = "Playlist not found or cannot be published." })
         : Results.Ok(published);
 }).RequireAuthorization(AuthPolicies.AdminPolicy);
+
+playlists.MapPost("/simulate", async (
+    PlaylistSimulateRequest request,
+    PlaylistSimulatorService service,
+    CancellationToken cancellationToken) =>
+{
+    var selectedSources = new[] { request.BookingRequestId, request.CampaignId, request.InventoryPackageId }
+        .Count(item => item.HasValue);
+
+    if (selectedSources > 1)
+    {
+        return Results.BadRequest(new { error = "Only one simulation source can be selected at a time." });
+    }
+
+    if (request.Date == default)
+    {
+        return Results.BadRequest(new { error = "Date is required." });
+    }
+
+    if (request.CreativeDurationSeconds < 1)
+    {
+        return Results.BadRequest(new { error = "CreativeDurationSeconds must be at least 1." });
+    }
+
+    if (request.OperatingHoursPerDay <= 0 || request.OperatingHoursPerDay > 24)
+    {
+        return Results.BadRequest(new { error = "OperatingHoursPerDay must be between 0 and 24." });
+    }
+
+    if (request.MaxLoopDurationSeconds is <= 0)
+    {
+        return Results.BadRequest(new { error = "MaxLoopDurationSeconds must be at least 1 when provided." });
+    }
+
+    try
+    {
+        return Results.Ok(await service.SimulateAsync(request, cancellationToken));
+    }
+    catch (KeyNotFoundException exception)
+    {
+        return Results.NotFound(new { error = exception.Message });
+    }
+});
 
 var programmatic = app.MapGroup("/api/programmatic");
 

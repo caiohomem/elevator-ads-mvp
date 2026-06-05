@@ -14,6 +14,7 @@ export interface TranslationDictionary {
     inventoryPackages: string;
     programmaticSimulator: string;
     playlists: string;
+    playlistSimulator: string;
     reports: string;
     settings: string;
   };
@@ -170,6 +171,7 @@ export interface TranslationDictionary {
       };
     };
     programmaticSimulator: { title: string; description: string };
+    playlistSimulator: { title: string; description: string };
     playlists: {
       title: string;
       description: string;
@@ -275,6 +277,47 @@ export interface TranslationDictionary {
     suggestedNextAction: string;
     audienceEstimate: string;
     capacityEstimate: string;
+    optional: string;
+  };
+  playlistSimulator: {
+    note: string;
+    sourceType: string;
+    sourceReference: string;
+    none: string;
+    bookingRequest: string;
+    campaign: string;
+    inventoryPackage: string;
+    date: string;
+    operatingHoursPerDay: string;
+    operatingHoursRange: string;
+    creativeDurationSeconds: string;
+    maxLoopDurationSeconds: string;
+    sourceHelp: string;
+    selectSource: string;
+    noSourcesAvailable: string;
+    sourceLoading: string;
+    runSimulation: string;
+    runningSimulation: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    resultsTitle: string;
+    summaryNote: string;
+    dateLabel: string;
+    loopDurationSeconds: string;
+    estimatedLoopsPerDay: string;
+    estimatedPlaysPerCreative: string;
+    estimatedTotalPlays: string;
+    estimatedAudience: string;
+    eligibleScreens: string;
+    eligibleBuildings: string;
+    itemsTitle: string;
+    itemsEmpty: string;
+    itemOrder: string;
+    itemDuration: string;
+    itemSource: string;
+    itemNotes: string;
+    warnings: string;
+    conflicts: string;
     optional: string;
   };
   settings: {
@@ -423,6 +466,7 @@ export const en: TranslationDictionary = {
     inventoryPackages: "Inventory Packages",
     programmaticSimulator: "Programmatic Simulator",
     playlists: "Playlists",
+    playlistSimulator: "Playlist Simulator",
     reports: "Reports",
     settings: "Settings",
   },
@@ -610,6 +654,11 @@ export const en: TranslationDictionary = {
       description:
         "Simulate how an external buyer would forecast scheduled elevator media before any real external API or OpenRTB flow exists.",
     },
+    playlistSimulator: {
+      title: "Playlist simulator",
+      description:
+        "Plan how a campaign, booking request, or inventory package would fit into the scheduled daily elevator playlist loop.",
+    },
     playlists: {
       title: "Daily playlists",
       description: "Published sequences distributed to elevator screens each day.",
@@ -722,6 +771,47 @@ export const en: TranslationDictionary = {
     suggestedNextAction: "Suggested next action",
     audienceEstimate: "Audience uses building-level daily estimates when available.",
     capacityEstimate: "Displayed as a percentage of placeholder unclaimed playlist capacity for the MVP.",
+    optional: "Optional",
+  },
+  playlistSimulator: {
+    note: "Playlist simulation is a planning tool only. It estimates the daily loop and repetitions but does not publish or persist a real playlist.",
+    sourceType: "Simulation source",
+    sourceReference: "Source reference",
+    none: "Manual",
+    bookingRequest: "Booking request",
+    campaign: "Campaign",
+    inventoryPackage: "Inventory package",
+    date: "Simulation date",
+    operatingHoursPerDay: "Operating hours per day",
+    operatingHoursRange: "Operating hours must be greater than zero and no more than 24.",
+    creativeDurationSeconds: "Creative duration (seconds)",
+    maxLoopDurationSeconds: "Max loop duration (seconds)",
+    sourceHelp: "Choose one source or run manually against active screens. Manual mode is useful for rough planning assumptions.",
+    selectSource: "Select a source",
+    noSourcesAvailable: "No sources available.",
+    sourceLoading: "Loading source options...",
+    runSimulation: "Run simulation",
+    runningSimulation: "Running simulation...",
+    emptyTitle: "No simulation yet",
+    emptyDescription: "Pick a source, set the date and loop assumptions, then run a simulated playlist for the scheduled elevator delivery model.",
+    resultsTitle: "Simulation result",
+    summaryNote: "This estimate reflects a single daily loop repeated across the selected operating window.",
+    dateLabel: "Date",
+    loopDurationSeconds: "Loop duration",
+    estimatedLoopsPerDay: "Loops per day",
+    estimatedPlaysPerCreative: "Plays per creative",
+    estimatedTotalPlays: "Total plays",
+    estimatedAudience: "Estimated audience",
+    eligibleScreens: "Eligible screens",
+    eligibleBuildings: "Eligible buildings",
+    itemsTitle: "Simulated sequence",
+    itemsEmpty: "No simulated items were returned.",
+    itemOrder: "Order",
+    itemDuration: "Duration (s)",
+    itemSource: "Source",
+    itemNotes: "Notes",
+    warnings: "Warnings",
+    conflicts: "Conflicts",
     optional: "Optional",
   },
   settings: {

@@ -266,6 +266,40 @@ export interface SimulatorForecastResponse {
   suggestedNextAction: string;
 }
 
+export interface PlaylistSimulateRequest {
+  bookingRequestId?: string | null;
+  campaignId?: string | null;
+  inventoryPackageId?: string | null;
+  date: string;
+  screenIds?: string[] | null;
+  creativeDurationSeconds: number;
+  operatingHoursPerDay: number;
+  maxLoopDurationSeconds?: number | null;
+}
+
+export interface PlaylistSimulateItem {
+  order: number;
+  campaignId: string | null;
+  creativeId: string | null;
+  creativeDurationSeconds: number;
+  source: string;
+  notes: string | null;
+}
+
+export interface PlaylistSimulateResponse {
+  date: string;
+  eligibleScreens: number;
+  eligibleBuildings: number;
+  loopDurationSeconds: number;
+  estimatedLoopsPerDay: number;
+  estimatedPlaysPerCreative: number;
+  estimatedTotalPlays: number;
+  estimatedAudience: number;
+  items: PlaylistSimulateItem[];
+  warnings: string[];
+  conflicts: string[];
+}
+
 export interface ApiDailyPlaylistItem {
   id: string;
   dailyPlaylistId: string;

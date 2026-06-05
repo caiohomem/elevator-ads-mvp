@@ -7,6 +7,8 @@ import type {
   ApiCreative,
   ApiDailyPlaylist,
   ApiDailyPlaylistItem,
+  PlaylistSimulateRequest,
+  PlaylistSimulateResponse,
   ApiScreen,
   DailyPlaylist,
   DailyPlaylistItem,
@@ -75,6 +77,16 @@ export async function generatePlaylists(date: string): Promise<ApiResult<ApiDail
 
 export async function publishPlaylist(id: string): Promise<ApiResult<ApiDailyPlaylist>> {
   return apiMutate<Record<string, never>, ApiDailyPlaylist>(`${playlistsEndpoint}/${id}/publish`, "POST", {});
+}
+
+export async function runPlaylistSimulate(
+  payload: PlaylistSimulateRequest,
+): Promise<ApiResult<PlaylistSimulateResponse>> {
+  return apiMutate<PlaylistSimulateRequest, PlaylistSimulateResponse>(
+    `${playlistsEndpoint}/simulate`,
+    "POST",
+    payload,
+  );
 }
 
 async function loadLookups(): Promise<PlaylistLookups> {

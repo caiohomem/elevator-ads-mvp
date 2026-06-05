@@ -8,6 +8,12 @@ The MVP delivery model is scheduled DOOH playlist delivery. Screens and players 
 
 The External Buyer Simulator is a DSP/SSP-style forecasting surface adapted to that scheduled delivery model. It allows a simulated external buyer to estimate eligible inventory, plays, audience, cost, and rough capacity before API keys, external buyer authentication, or any OpenRTB adapter exist.
 
+## Playlist Simulation
+
+Playlist simulation is an internal planning tool for the scheduled elevator delivery model. It helps operators estimate what a daily loop would look like for a booking request, campaign, or inventory package before any real playlist is published.
+
+The simulator does not publish or persist a `DailyPlaylist`. It estimates loop duration, repeats per day, plays per creative, total plays, audience, and capacity warnings using a simple deterministic MVP algorithm aligned with the once-per-day scheduled playlist workflow.
+
 ## Campaign Booking Requests
 
 A campaign booking request captures commercial demand before it becomes a real campaign. It is the structured handoff between an advertiser or operator expressing intent and the later operational steps such as forecast review, approval, campaign creation, and daily playlist allocation.

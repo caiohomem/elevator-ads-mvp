@@ -9,6 +9,7 @@ export const navigationItems = [
   { href: "/inventory-packages", key: "inventoryPackages" },
   { href: "/programmatic/simulator", key: "programmaticSimulator" },
   { href: "/playlists", key: "playlists" },
+  { href: "/playlists/simulator", key: "playlistSimulator" },
   { href: "/reports", key: "reports" },
   { href: "/settings", key: "settings" },
 ] as const;
