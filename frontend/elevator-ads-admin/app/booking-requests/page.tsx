@@ -24,7 +24,7 @@ import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
 import type { ApiBookingRequest, ApiCampaignForecast, BookingRequestStatus } from "@/lib/types";
 
-type ModalMode = "create" | "edit" | "view";
+type ModalMode = "closed" | "create" | "edit" | "view";
 type StatusAction = "submit" | "approve" | "reject";
 
 export default function BookingRequestsPage() {
@@ -39,7 +39,7 @@ export default function BookingRequestsPage() {
   const advertisersState = useApiData(getAdvertisersList);
 
   const [selected, setSelected] = useState<ApiBookingRequest | null>(null);
-  const [modalMode, setModalMode] = useState<ModalMode>("create");
+  const [modalMode, setModalMode] = useState<ModalMode>("closed");
   const [actionInFlight, setActionInFlight] = useState<{ id: string; action: StatusAction } | null>(null);
   const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -51,7 +51,7 @@ export default function BookingRequestsPage() {
 
   const closeModal = () => {
     setSelected(null);
-    setModalMode("create");
+    setModalMode("closed");
   };
 
   const openCreate = () => {
