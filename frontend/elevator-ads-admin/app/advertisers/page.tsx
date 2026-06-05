@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { AdvertiserForm } from "@/components/AdvertiserForm";
 import { ClientPageFrame } from "@/components/ClientPageFrame";
@@ -53,15 +54,23 @@ export default function AdvertisersPage() {
       className: "text-right",
       render: (row) => {
         return (
-          <button
-            type="button"
-            onClick={() => {
-              openEdit(row);
-            }}
-            className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
-          >
-            {dictionary.forms.edit}
-          </button>
+          <div className="flex justify-end gap-2">
+            <Link
+              href={`/advertisers/${row.id}/api-keys`}
+              className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 dark:hover:bg-white/5"
+            >
+              {dictionary.pages.advertiserApiKeys.shortAction}
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                openEdit(row);
+              }}
+              className="rounded-full border border-[var(--panel-border)] px-3 py-1 text-xs font-semibold text-[var(--foreground)] transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/5"
+            >
+              {dictionary.forms.edit}
+            </button>
+          </div>
         );
       },
     },

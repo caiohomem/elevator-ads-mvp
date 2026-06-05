@@ -12,6 +12,7 @@ export type BookingRequestStatus =
   | "ConvertedToCampaign";
 export type PlaylistStatus = "Draft" | "Published" | "Downloaded" | "Expired";
 export type InventoryPackageStatus = "Active" | "Inactive";
+export type ApiKeyStatus = "Active" | "Revoked" | "Expired";
 
 export interface PagedQuery {
   page: number;
@@ -165,6 +166,29 @@ export interface ApiAdvertiser {
   status: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiAdvertiserApiKey {
+  id: string;
+  advertiserId: string;
+  name: string;
+  keyPrefix: string;
+  scopes: string[];
+  status: ApiKeyStatus;
+  createdAt: string;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  revokedAt: string | null;
+}
+
+export interface CreateApiKeyPayload {
+  name: string;
+  scopes: string[];
+  expiresAt?: string | null;
+}
+
+export interface CreateApiKeyResponse extends ApiAdvertiserApiKey {
+  plainApiKey: string;
 }
 
 export interface ApiCreative {

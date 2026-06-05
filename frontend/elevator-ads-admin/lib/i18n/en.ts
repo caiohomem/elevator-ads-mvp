@@ -83,6 +83,36 @@ export interface TranslationDictionary {
     buildings: { title: string; description: string };
     screens: { title: string; description: string };
     advertisers: { title: string; description: string };
+    advertiserApiKeys: {
+      title: string;
+      description: string;
+      shortAction: string;
+      createButton: string;
+      revokeButton: string;
+      revoking: string;
+      backToAdvertisers: string;
+      advertiserLabel: string;
+      emptyTitle: string;
+      emptyDescription: string;
+      createModalTitle: string;
+      createdModalTitle: string;
+      shownOnceWarning: string;
+      plainKeyLabel: string;
+      copyButton: string;
+      copySuccess: string;
+      copyFailed: string;
+      notUsedYet: string;
+      noExpiration: string;
+      columns: {
+        name: string;
+        scopes: string;
+        status: string;
+        lastUsedAt: string;
+        expiresAt: string;
+        createdAt: string;
+      };
+      statuses: Record<"Active" | "Revoked" | "Expired", string>;
+    };
     creatives: { title: string; description: string };
     campaigns: { title: string; description: string };
     bookingRequests: {
@@ -404,6 +434,15 @@ export interface TranslationDictionary {
       phone: string;
       status: string;
     };
+    advertiserApiKey: {
+      create: string;
+      name: string;
+      scopes: string;
+      expiresAt: string;
+      shownOnceWarning: string;
+      scopeRequired: string;
+      scopeLabels: Record<"inventory:read" | "forecast:create" | "booking:create" | "reports:read", string>;
+    };
     creative: {
       advertiserId: string;
       name: string;
@@ -544,6 +583,40 @@ export const en: TranslationDictionary = {
     advertisers: {
       title: "Advertisers",
       description: "Commercial accounts and campaign relationships.",
+    },
+    advertiserApiKeys: {
+      title: "Advertiser API keys",
+      description: "Manage one-time API credentials for external advertiser and partner integrations.",
+      shortAction: "API keys",
+      createButton: "New API key",
+      revokeButton: "Revoke",
+      revoking: "Revoking...",
+      backToAdvertisers: "Back to advertisers",
+      advertiserLabel: "Advertiser",
+      emptyTitle: "No API keys yet",
+      emptyDescription: "Create the first API key to enable controlled partner access for this advertiser.",
+      createModalTitle: "Create API key",
+      createdModalTitle: "Store this API key now",
+      shownOnceWarning: "This API key is shown only once. Copy it now and store it securely.",
+      plainKeyLabel: "Plain API key",
+      copyButton: "Copy key",
+      copySuccess: "Copied",
+      copyFailed: "Unable to copy automatically. Copy the key manually.",
+      notUsedYet: "Not used yet",
+      noExpiration: "No expiration",
+      columns: {
+        name: "Key",
+        scopes: "Scopes",
+        status: "Status",
+        lastUsedAt: "Last used",
+        expiresAt: "Expires",
+        createdAt: "Created",
+      },
+      statuses: {
+        Active: "Active",
+        Revoked: "Revoked",
+        Expired: "Expired",
+      },
     },
     creatives: {
       title: "Creatives",
@@ -898,6 +971,20 @@ export const en: TranslationDictionary = {
       contactEmail: "Contact email",
       phone: "Phone",
       status: "Status",
+    },
+    advertiserApiKey: {
+      create: "Create API key",
+      name: "Key name",
+      scopes: "Scopes",
+      expiresAt: "Expiration date",
+      shownOnceWarning: "The generated key is displayed once and is never stored in plain text.",
+      scopeRequired: "Select at least one scope.",
+      scopeLabels: {
+        "inventory:read": "Inventory read",
+        "forecast:create": "Forecast create",
+        "booking:create": "Booking create",
+        "reports:read": "Reports read",
+      },
     },
     creative: {
       advertiserId: "Advertiser",

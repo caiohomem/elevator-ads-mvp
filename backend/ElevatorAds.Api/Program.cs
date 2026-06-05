@@ -86,6 +86,12 @@ builder.Services.AddScoped<IScreenRepository, EfScreenRepository>();
 builder.Services.AddScoped<ScreenService>();
 builder.Services.AddScoped<IAdvertiserRepository, EfAdvertiserRepository>();
 builder.Services.AddScoped<AdvertiserService>();
+builder.Services.AddScoped<IAdvertiserApiKeyRepository, EfAdvertiserApiKeyRepository>();
+builder.Services.AddScoped(provider => new AdvertiserApiKeyService(
+    provider.GetRequiredService<IAdvertiserApiKeyRepository>(),
+    provider.GetRequiredService<IAdvertiserRepository>(),
+    provider.GetRequiredService<TimeProvider>(),
+    builder.Environment.IsDevelopment() ? "elev_test_" : "elev_live_"));
 builder.Services.AddScoped<ICreativeRepository, EfCreativeRepository>();
 builder.Services.AddScoped<CreativeService>();
 builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
@@ -458,6 +464,42 @@ advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request
 advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =>
     await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
     .RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+advertisers.MapGet("/{advertiserId:guid}/api-keys", async (Guid advertiserId, AdvertiserApiKeyService service) =>
+{
+    var result = await service.GetByAdvertiserIdAsync(advertiserId);
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+advertisers.MapPost("/{advertiserId:guid}/api-keys", async (
+    Guid advertiserId,
+    CreateAdvertiserApiKeyRequest request,
+    AdvertiserApiKeyService service) =>
+{
+    var result = await service.CreateAsync(advertiserId, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null
+        ? Results.NotFound()
+        : Results.Created($"/api/advertisers/{advertiserId}/api-keys/{result.Value.Id}", result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+advertisers.MapPost("/{advertiserId:guid}/api-keys/{apiKeyId:guid}/revoke", async (
+    Guid advertiserId,
+    Guid apiKeyId,
+    AdvertiserApiKeyService service) =>
+{
+    var result = await service.RevokeAsync(advertiserId, apiKeyId);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 advertisers.MapGet("/{advertiserId:guid}/campaign-reports/{campaignId:guid}", async (
     Guid advertiserId,
@@ -875,6 +917,31 @@ programmatic.MapPost("/simulator/forecast", async (
 
     return Results.Ok(await service.ForecastAsync(request, cancellationToken));
 });
+
+if (app.Environment.IsDevelopment())
+{
+    programmatic.MapGet("/internal/api-key-check/forecast", (HttpContext httpContext) =>
+    {
+        return Results.Ok(new
+        {
+            advertiserId = httpContext.Items[AdvertiserApiKeyHttpContext.AdvertiserIdKey],
+            apiKeyId = httpContext.Items[AdvertiserApiKeyHttpContext.ApiKeyIdKey],
+            keyPrefix = httpContext.Items[AdvertiserApiKeyHttpContext.KeyPrefixKey],
+            requiredScope = AdvertiserApiKeyService.ForecastCreateScope
+        });
+    }).RequireAdvertiserApiKeyScope(AdvertiserApiKeyService.ForecastCreateScope);
+
+    programmatic.MapGet("/internal/api-key-check/reports", (HttpContext httpContext) =>
+    {
+        return Results.Ok(new
+        {
+            advertiserId = httpContext.Items[AdvertiserApiKeyHttpContext.AdvertiserIdKey],
+            apiKeyId = httpContext.Items[AdvertiserApiKeyHttpContext.ApiKeyIdKey],
+            keyPrefix = httpContext.Items[AdvertiserApiKeyHttpContext.KeyPrefixKey],
+            requiredScope = AdvertiserApiKeyService.ReportsReadScope
+        });
+    }).RequireAdvertiserApiKeyScope(AdvertiserApiKeyService.ReportsReadScope);
+}
 
 var playbackReports = app.MapGroup("/api/playback-reports");
 
