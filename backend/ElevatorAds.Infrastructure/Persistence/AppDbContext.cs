@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Advertiser> Advertisers => Set<Advertiser>();
     public DbSet<Creative> Creatives => Set<Creative>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
+    public DbSet<CampaignBookingRequest> CampaignBookingRequests => Set<CampaignBookingRequest>();
     public DbSet<CampaignCreative> CampaignCreatives => Set<CampaignCreative>();
     public DbSet<CampaignDeliveryConstraints> CampaignDeliveryConstraints => Set<CampaignDeliveryConstraints>();
     public DbSet<DailyPlaylist> DailyPlaylists => Set<DailyPlaylist>();

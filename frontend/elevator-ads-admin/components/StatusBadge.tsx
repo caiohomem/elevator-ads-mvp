@@ -14,14 +14,14 @@ const statusClasses: Record<string, string> = {
   Expired: "bg-slate-500/12 text-slate-700 dark:text-slate-300",
 };
 
-export function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status, label }: { status: string; label?: string }) {
   return (
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold tracking-[0.02em] ${
         statusClasses[status] ?? "bg-slate-500/12 text-slate-700 dark:text-slate-300"
       }`}
     >
-      {status}
+      {label ?? status}
     </span>
   );
 }

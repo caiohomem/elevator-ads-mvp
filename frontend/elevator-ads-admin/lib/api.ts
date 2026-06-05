@@ -1,6 +1,15 @@
 import { dashboardSummary, recentActivity } from "@/lib/mockData";
 
 export {
+  approveBookingRequest,
+  createBookingRequest,
+  getBookingRequest,
+  getBookingRequestsPaged,
+  rejectBookingRequest,
+  submitBookingRequest,
+  updateBookingRequest,
+} from "@/lib/api/booking-requests";
+export {
   createAdvertiser,
   getAdvertisers,
   getAdvertisersList,
