@@ -12,6 +12,14 @@ export {
   updateBookingRequest,
 } from "@/lib/api/booking-requests";
 export {
+  createInventoryPackage,
+  deleteInventoryPackage,
+  getInventoryPackageById,
+  getInventoryPackageScreens,
+  getInventoryPackagesPaged,
+  updateInventoryPackage,
+} from "@/lib/api/inventory-packages";
+export {
   createAdvertiser,
   getAdvertisers,
   getAdvertisersList,

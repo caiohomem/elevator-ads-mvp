@@ -1,40 +1,30 @@
-using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Common;
+using ElevatorAds.Domain.Entities;
 using ElevatorAds.Domain.Enums;
 using ElevatorAds.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace ElevatorAds.Infrastructure.Repositories;
 
-public sealed class EfScreenRepository : IScreenRepository
+public sealed class EfInventoryPackageRepository : IInventoryPackageRepository
 {
     private readonly Persistence.AppDbContext _context;
 
-    public EfScreenRepository(Persistence.AppDbContext context) => _context = context;
+    public EfInventoryPackageRepository(Persistence.AppDbContext context) => _context = context;
 
-    public async Task<IEnumerable<Screen>> GetAllAsync() =>
-        await _context.Screens.AsNoTracking().OrderBy(item => item.CreatedAt).ToListAsync();
-
-    public async Task<IEnumerable<Screen>> GetAllWithBuildingsAsync() =>
-        await _context.Screens
-            .AsNoTracking()
-            .Include(item => item.Building)
-            .OrderBy(item => item.CreatedAt)
-            .ToListAsync();
-
-    public async Task<(IEnumerable<Screen> Items, int TotalCount)> GetPagedAsync(PagedQuery query)
+    public async Task<(IEnumerable<InventoryPackage> Items, int TotalCount)> GetPagedAsync(PagedQuery query)
     {
-        var itemsQuery = _context.Screens.AsNoTracking();
+        var itemsQuery = _context.InventoryPackages.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var search = query.Search.Trim().ToLower();
+            var search = query.Search.Trim().ToLowerInvariant();
             itemsQuery = itemsQuery.Where(item => item.Name.ToLower().Contains(search));
         }
 
         if (!string.IsNullOrWhiteSpace(query.Status))
         {
-            if (Enum.TryParse<ScreenStatus>(query.Status.Trim(), true, out var status))
+            if (Enum.TryParse<InventoryPackageStatus>(query.Status.Trim(), true, out var status))
             {
                 itemsQuery = itemsQuery.Where(item => item.Status == status);
             }
@@ -55,57 +45,50 @@ public sealed class EfScreenRepository : IScreenRepository
         return (items, totalCount);
     }
 
-    public async Task<Screen?> GetByIdAsync(Guid id) =>
-        await _context.Screens.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
+    public async Task<InventoryPackage?> GetByIdAsync(Guid id) =>
+        await _context.InventoryPackages.AsNoTracking().FirstOrDefaultAsync(item => item.Id == id);
 
-    public async Task<Screen> AddAsync(Screen screen)
+    public async Task<InventoryPackage> AddAsync(InventoryPackage inventoryPackage)
     {
-        await _context.Screens.AddAsync(screen);
+        await _context.InventoryPackages.AddAsync(inventoryPackage);
         await _context.SaveChangesAsync();
-        return screen;
+        return inventoryPackage;
     }
 
-    public async Task<Screen?> UpdateAsync(Screen screen)
+    public async Task<InventoryPackage?> UpdateAsync(InventoryPackage inventoryPackage)
     {
-        var existing = await _context.Screens.FirstOrDefaultAsync(item => item.Id == screen.Id);
+        var existing = await _context.InventoryPackages.FirstOrDefaultAsync(item => item.Id == inventoryPackage.Id);
         if (existing is null)
         {
             return null;
         }
 
-        _context.Entry(existing).CurrentValues.SetValues(screen);
+        _context.Entry(existing).CurrentValues.SetValues(inventoryPackage);
+        existing.Cities = inventoryPackage.Cities;
+        existing.BuildingTypes = inventoryPackage.BuildingTypes;
+        existing.ScreenOrientations = inventoryPackage.ScreenOrientations;
+        existing.ScreenIds = inventoryPackage.ScreenIds;
+        existing.BuildingIds = inventoryPackage.BuildingIds;
         await _context.SaveChangesAsync();
         return existing;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var existing = await _context.Screens.FirstOrDefaultAsync(item => item.Id == id);
+        var existing = await _context.InventoryPackages.FirstOrDefaultAsync(item => item.Id == id);
         if (existing is null)
         {
             return false;
         }
 
-        _context.Screens.Remove(existing);
+        _context.InventoryPackages.Remove(existing);
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<Screen?> UpdateLastSeenAtAsync(Guid id, DateTime lastSeenAt)
-    {
-        var existing = await _context.Screens.FirstOrDefaultAsync(item => item.Id == id);
-        if (existing is null)
-        {
-            return null;
-        }
-
-        existing.LastSeenAt = lastSeenAt;
-        existing.UpdatedAt = lastSeenAt;
-        await _context.SaveChangesAsync();
-        return existing;
-    }
-
-    private static IOrderedQueryable<Screen> ApplySort(IQueryable<Screen> query, PagedQuery pagedQuery)
+    private static IOrderedQueryable<InventoryPackage> ApplySort(
+        IQueryable<InventoryPackage> query,
+        PagedQuery pagedQuery)
     {
         var sortBy = pagedQuery.SortBy?.Trim().ToLowerInvariant();
         var descending = string.Equals(pagedQuery.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
@@ -116,6 +99,8 @@ public sealed class EfScreenRepository : IScreenRepository
             "name" => query.OrderBy(item => item.Name).ThenBy(item => item.Id),
             "status" when descending => query.OrderByDescending(item => item.Status).ThenByDescending(item => item.Id),
             "status" => query.OrderBy(item => item.Status).ThenBy(item => item.Id),
+            "basecpm" when descending => query.OrderByDescending(item => item.BaseCpm).ThenByDescending(item => item.Id),
+            "basecpm" => query.OrderBy(item => item.BaseCpm).ThenBy(item => item.Id),
             "createdat" when descending => query.OrderByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id),
             "createdat" => query.OrderBy(item => item.CreatedAt).ThenBy(item => item.Id),
             _ => query.OrderByDescending(item => item.CreatedAt).ThenByDescending(item => item.Id)

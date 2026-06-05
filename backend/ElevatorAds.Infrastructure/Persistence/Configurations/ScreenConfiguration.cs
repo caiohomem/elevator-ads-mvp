@@ -27,5 +27,10 @@ public sealed class ScreenConfiguration : IEntityTypeConfiguration<Screen>
             .WithMany()
             .HasForeignKey(item => item.OrganizationId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(item => item.Building)
+            .WithMany()
+            .HasForeignKey(item => item.BuildingId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

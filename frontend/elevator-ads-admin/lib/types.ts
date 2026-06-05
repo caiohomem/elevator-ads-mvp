@@ -11,6 +11,7 @@ export type BookingRequestStatus =
   | "Rejected"
   | "ConvertedToCampaign";
 export type PlaylistStatus = "Draft" | "Published" | "Downloaded" | "Expired";
+export type InventoryPackageStatus = "Active" | "Inactive";
 
 export interface PagedQuery {
   page: number;
@@ -221,6 +222,21 @@ export interface ApiCampaignForecast {
   availableCapacity: number;
   warnings: string[];
   conflicts: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiInventoryPackage {
+  id: string;
+  name: string;
+  description: string;
+  cities: string[];
+  buildingTypes: DeliveryBuildingType[];
+  screenOrientations: DeliveryScreenOrientation[];
+  screenIds: string[];
+  buildingIds: string[];
+  baseCpm: number;
+  status: InventoryPackageStatus;
   createdAt: string;
   updatedAt: string;
 }

@@ -6,6 +6,7 @@ namespace ElevatorAds.Domain.Interfaces;
 public interface IScreenRepository
 {
     Task<IEnumerable<Screen>> GetAllAsync();
+    Task<IEnumerable<Screen>> GetAllWithBuildingsAsync();
     Task<(IEnumerable<Screen> Items, int TotalCount)> GetPagedAsync(PagedQuery query);
     Task<Screen?> GetByIdAsync(Guid id);
     Task<Screen> AddAsync(Screen screen);

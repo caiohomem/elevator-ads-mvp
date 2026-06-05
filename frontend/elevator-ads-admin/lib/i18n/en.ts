@@ -11,6 +11,7 @@ export interface TranslationDictionary {
     creatives: string;
     campaigns: string;
     bookingRequests: string;
+    inventoryPackages: string;
     programmaticSimulator: string;
     playlists: string;
     reports: string;
@@ -129,6 +130,43 @@ export interface TranslationDictionary {
         conflicts: string;
         disclaimer: string;
         updatedAt: string;
+      };
+    };
+    inventoryPackages: {
+      title: string;
+      description: string;
+      saveSuccess: string;
+      deleteSuccess: string;
+      deleteFailed: string;
+      view: string;
+      viewScreens: string;
+      detailTitle: string;
+      matchingScreensTitle: string;
+      matchingScreensEmpty: string;
+      matchingScreensLoadError: string;
+      columns: {
+        name: string;
+        status: string;
+        baseCpm: string;
+        cities: string;
+        createdAt: string;
+      };
+      statuses: Record<"Active" | "Inactive", string>;
+      details: {
+        description: string;
+        cities: string;
+        buildingTypes: string;
+        screenOrientations: string;
+        buildingIds: string;
+        screenIds: string;
+        baseCpm: string;
+        updatedAt: string;
+      };
+      screens: {
+        name: string;
+        building: string;
+        orientation: string;
+        status: string;
       };
     };
     programmaticSimulator: { title: string; description: string };
@@ -258,6 +296,8 @@ export interface TranslationDictionary {
     editCampaign: string;
     newBookingRequest: string;
     editBookingRequest: string;
+    newInventoryPackage: string;
+    editInventoryPackage: string;
     manageCreatives: string;
     assignedCreatives: string;
     availableCreatives: string;
@@ -352,6 +392,18 @@ export interface TranslationDictionary {
       campaignObjective: string;
       notes: string;
     };
+    inventoryPackage: {
+      name: string;
+      description: string;
+      cities: string;
+      citiesHelp: string;
+      buildingTypes: string;
+      screenOrientations: string;
+      buildings: string;
+      screens: string;
+      baseCpm: string;
+      status: string;
+    };
   };
 }
 
@@ -368,6 +420,7 @@ export const en: TranslationDictionary = {
     creatives: "Creatives",
     campaigns: "Campaigns",
     bookingRequests: "Booking Requests",
+    inventoryPackages: "Inventory Packages",
     programmaticSimulator: "Programmatic Simulator",
     playlists: "Playlists",
     reports: "Reports",
@@ -511,6 +564,47 @@ export const en: TranslationDictionary = {
         updatedAt: "Updated at",
       },
     },
+    inventoryPackages: {
+      title: "Inventory Packages",
+      description:
+        "Sellable DOOH groupings that combine buildings, screens, and targeting filters for SSP-lite commercial packaging.",
+      saveSuccess: "Inventory package saved.",
+      deleteSuccess: "Inventory package deleted.",
+      deleteFailed: "Unable to delete inventory package.",
+      view: "View",
+      viewScreens: "View screens",
+      detailTitle: "Inventory package details",
+      matchingScreensTitle: "Matching screens",
+      matchingScreensEmpty: "No screens currently match this package.",
+      matchingScreensLoadError: "Unable to load matching screens.",
+      columns: {
+        name: "Name",
+        status: "Status",
+        baseCpm: "Base CPM",
+        cities: "Cities",
+        createdAt: "Created",
+      },
+      statuses: {
+        Active: "Active",
+        Inactive: "Inactive",
+      },
+      details: {
+        description: "Description",
+        cities: "Cities",
+        buildingTypes: "Building types",
+        screenOrientations: "Screen orientations",
+        buildingIds: "Buildings",
+        screenIds: "Screens",
+        baseCpm: "Base CPM",
+        updatedAt: "Updated at",
+      },
+      screens: {
+        name: "Screen",
+        building: "Building",
+        orientation: "Orientation",
+        status: "Status",
+      },
+    },
     programmaticSimulator: {
       title: "Programmatic simulator",
       description:
@@ -650,6 +744,8 @@ export const en: TranslationDictionary = {
     editCampaign: "Edit campaign",
     newBookingRequest: "New booking request",
     editBookingRequest: "Edit booking request",
+    newInventoryPackage: "New inventory package",
+    editInventoryPackage: "Edit inventory package",
     manageCreatives: "Manage creatives",
     assignedCreatives: "Assigned creatives",
     availableCreatives: "Available approved creatives",
@@ -743,6 +839,18 @@ export const en: TranslationDictionary = {
       budget: "Budget",
       campaignObjective: "Campaign objective",
       notes: "Notes",
+    },
+    inventoryPackage: {
+      name: "Name",
+      description: "Description",
+      cities: "Cities",
+      citiesHelp: "Lisbon, Porto, Madrid",
+      buildingTypes: "Building types",
+      screenOrientations: "Screen orientations",
+      buildings: "Buildings",
+      screens: "Screens",
+      baseCpm: "Base CPM",
+      status: "Status",
     },
   },
 };

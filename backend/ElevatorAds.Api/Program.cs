@@ -13,6 +13,8 @@ using ElevatorAds.Application.Campaigns;
 using ElevatorAds.Application.Creatives;
 using ElevatorAds.Application.Creatives.Dtos;
 using ElevatorAds.Application.DeliveryReports;
+using ElevatorAds.Application.InventoryPackages;
+using ElevatorAds.Application.InventoryPackages.Dtos;
 using ElevatorAds.Application.Organizations;
 using ElevatorAds.Application.Organizations.Dtos;
 using ElevatorAds.Application.PlaybackReports;
@@ -91,6 +93,8 @@ builder.Services.AddScoped<ICampaignBookingRequestRepository, EfCampaignBookingR
 builder.Services.AddScoped<BookingRequestService>();
 builder.Services.AddScoped<ICampaignForecastRepository, EfCampaignForecastRepository>();
 builder.Services.AddScoped<CampaignForecastService>();
+builder.Services.AddScoped<IInventoryPackageRepository, EfInventoryPackageRepository>();
+builder.Services.AddScoped<InventoryPackageService>();
 builder.Services.AddScoped<ICampaignCreativeRepository, EfCampaignCreativeRepository>();
 builder.Services.AddScoped<CampaignCreativeService>();
 builder.Services.AddScoped<ICampaignDeliveryConstraintsRepository, EfCampaignDeliveryConstraintsRepository>();
@@ -655,6 +659,53 @@ bookingRequests.MapPost("/{id:guid}/forecast", async (
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
 }).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+var inventoryPackages = app.MapGroup("/api/inventory-packages");
+
+inventoryPackages.MapGet("/", async ([AsParameters] PagedQuery query, InventoryPackageService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+inventoryPackages.MapGet("/{id:guid}", async (Guid id, InventoryPackageService service) =>
+{
+    var item = await service.GetByIdAsync(id);
+    return item is null ? Results.NotFound() : Results.Ok(item);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+inventoryPackages.MapPost("/", async (CreateInventoryPackageRequest request, InventoryPackageService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/inventory-packages/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+inventoryPackages.MapPut("/{id:guid}", async (Guid id, UpdateInventoryPackageRequest request, InventoryPackageService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+inventoryPackages.MapDelete("/{id:guid}", async (Guid id, InventoryPackageService service) =>
+    await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
+    .RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+inventoryPackages.MapGet("/{id:guid}/screens", async (Guid id, InventoryPackageService service) =>
+{
+    var screens = await service.GetMatchingScreensAsync(id);
+    return screens is null ? Results.NotFound() : Results.Ok(screens);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
 
 campaigns.MapGet("/{campaignId:guid}/creatives", async (Guid campaignId, CampaignCreativeService service) =>
 {
