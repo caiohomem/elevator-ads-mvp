@@ -65,6 +65,9 @@ export {
   runPlaylistSimulate,
 } from "@/lib/api/playlists";
 export {
+  getEstimatedProofOfPlay,
+} from "@/lib/api/estimated-proof-of-play";
+export {
   getProofOfPlayEvents,
   getProofOfPlayEventsPaged,
   getReportsCampaigns,

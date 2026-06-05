@@ -179,6 +179,25 @@ This Compose stack uses its own named volume, `elevator_ads_postgres_data`. The 
 
 The first delivery model for Elevator Ads MVP is not real-time ad serving. Each screen or player is expected to download a `DailyPlaylist` once per day, repeat that same ordered sequence throughout the day, and send playback or proof-of-play data later. Real-time `next-ad` decisions, auction logic, DSP/SSP bidding, and OpenRTB are intentionally out of scope for the MVP.
 
+## Estimated Proof-of-Play Report
+
+The MVP also exposes an estimated proof-of-play report for advertiser-facing delivery evidence. This report separates three different concepts:
+
+- Actual reported plays: proof-of-play events sent back by screens after playback.
+- Scheduled plays: playlist rows stored for a given screen and day, used as fallback when proof-of-play is missing.
+- Estimated audience and impressions: values derived from each building's `EstimatedDailyAudience`, not from direct passenger counting.
+
+This distinction matters. The platform can know what was scheduled and what was later reported as played, but the number of people inside an elevator is still an estimate in this MVP. The report does not claim measured people counts, unique reach, or computer-vision verification.
+
+The current assumptions are intentionally simple and deterministic:
+
+- Proof-of-play events are the primary source for reported playback.
+- The latest stored daily playlist for a screen and date is used to estimate scheduled delivery when playback data is absent or incomplete.
+- Building-level daily audience is apportioned across that screen's effective plays for the day.
+- Estimated audience and estimated impressions are the same numeric value in the MVP report because the system does not yet measure rider-level exposure or deduplicated reach.
+
+Warnings are returned whenever the report depends on fallback playlist data or when buildings are missing audience inputs. This keeps the report useful for advertiser communication without overstating what the system currently measures.
+
 ## Future Roadmap Summary
 
 Future phases include screen management, advertiser and campaign management, creative management, campaign delivery constraints, daily playlist generation, playlist download, proof-of-play tracking, reports, richer external buyer APIs, and only later SSP/DSP models with API keys and an OpenRTB adapter.
