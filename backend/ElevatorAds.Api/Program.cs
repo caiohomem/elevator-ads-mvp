@@ -21,6 +21,7 @@ using ElevatorAds.Application.PlaybackReports;
 using ElevatorAds.Application.PlaybackReports.Dtos;
 using ElevatorAds.Application.Playlists;
 using ElevatorAds.Application.Programmatic;
+using ElevatorAds.Application.Reports;
 using ElevatorAds.Application.Screens;
 using ElevatorAds.Application.Screens.Dtos;
 using ElevatorAds.Domain.Interfaces;
@@ -108,6 +109,7 @@ builder.Services.AddScoped<SimulatorForecastService>();
 builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventRepository>();
 builder.Services.AddScoped<ProofOfPlayService>();
 builder.Services.AddScoped<DeliveryReportService>();
+builder.Services.AddScoped<EstimatedProofOfPlayService>();
 builder.Services.AddScoped<IOrganizationRepository, EfOrganizationRepository>();
 builder.Services.AddScoped<OrganizationService>();
 
@@ -905,6 +907,31 @@ reports.MapGet("/screens", async (string? from, string? to, DeliveryReportServic
 
     return Results.Ok(await service.GetScreensAsync(fromDate, toDate));
 });
+
+reports.MapGet("/estimated-proof-of-play", async (
+    Guid? campaignId,
+    string? from,
+    string? to,
+    EstimatedProofOfPlayService service) =>
+{
+    if (campaignId is null)
+    {
+        return Results.UnprocessableEntity(new { error = "CampaignId is required." });
+    }
+
+    if (!TryParseDate(from, out var fromDate) || !TryParseDate(to, out var toDate))
+    {
+        return Results.UnprocessableEntity(new { error = "From and To dates are required." });
+    }
+
+    if (toDate < fromDate)
+    {
+        return Results.UnprocessableEntity(new { error = "To must be greater than or equal to From." });
+    }
+
+    var report = await service.GenerateAsync(campaignId.Value, fromDate, toDate);
+    return report is null ? Results.NotFound() : Results.Ok(report);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
 
 static bool TryParseDate(string? value, out DateOnly date) =>
     DateOnly.TryParseExact(value, "yyyy-MM-dd", out date);

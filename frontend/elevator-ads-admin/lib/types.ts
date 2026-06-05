@@ -378,6 +378,40 @@ export interface ScreenReport {
   screens: GroupSummary[];
 }
 
+export interface EstimatedProofOfPlayItem {
+  date: string;
+  screenId: string;
+  screenName: string;
+  buildingId: string;
+  buildingName: string;
+  city: string;
+  creativeId: string;
+  creativeName: string;
+  scheduledPlays: number;
+  reportedPlays: number;
+  estimatedAudience: number;
+  estimatedImpressions: number;
+}
+
+export interface EstimatedProofOfPlayReport {
+  campaignId: string;
+  campaignName: string;
+  advertiserId: string;
+  advertiserName: string;
+  dateFrom: string;
+  dateTo: string;
+  totalScheduledPlays: number;
+  totalReportedPlays: number;
+  estimatedAudience: number;
+  estimatedImpressions: number;
+  screensCount: number;
+  buildingsCount: number;
+  cities: string[];
+  items: EstimatedProofOfPlayItem[];
+  assumptions: string[];
+  warnings: string[];
+}
+
 export interface ProofOfPlayEvent {
   id: string;
   screenId: string;
