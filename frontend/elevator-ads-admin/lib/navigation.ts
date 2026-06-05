@@ -6,6 +6,7 @@ export const navigationItems = [
   { href: "/creatives", key: "creatives" },
   { href: "/campaigns", key: "campaigns" },
   { href: "/booking-requests", key: "bookingRequests" },
+  { href: "/inventory-packages", key: "inventoryPackages" },
   { href: "/programmatic/simulator", key: "programmaticSimulator" },
   { href: "/playlists", key: "playlists" },
   { href: "/reports", key: "reports" },

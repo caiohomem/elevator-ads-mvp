@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<CampaignForecast> CampaignForecasts => Set<CampaignForecast>();
     public DbSet<CampaignCreative> CampaignCreatives => Set<CampaignCreative>();
     public DbSet<CampaignDeliveryConstraints> CampaignDeliveryConstraints => Set<CampaignDeliveryConstraints>();
+    public DbSet<InventoryPackage> InventoryPackages => Set<InventoryPackage>();
     public DbSet<DailyPlaylist> DailyPlaylists => Set<DailyPlaylist>();
     public DbSet<DailyPlaylistItem> DailyPlaylistItems => Set<DailyPlaylistItem>();
     public DbSet<ProofOfPlayEvent> ProofOfPlayEvents => Set<ProofOfPlayEvent>();

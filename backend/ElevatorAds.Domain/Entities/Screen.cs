@@ -18,4 +18,5 @@ public class Screen
     public DateTime UpdatedAt { get; set; }
 
     public Organization? Organization { get; set; }
+    public Building? Building { get; set; }
 }
