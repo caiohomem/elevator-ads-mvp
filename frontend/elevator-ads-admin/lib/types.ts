@@ -3,6 +3,13 @@ export type EntityStatus = "Active" | "Inactive";
 export type ScreenStatus = "Active" | "Inactive" | "Offline" | "Maintenance";
 export type ApprovalStatus = "Draft" | "PendingReview" | "Approved" | "Rejected";
 export type CampaignStatus = "Draft" | "Scheduled" | "Active" | "Paused";
+export type BookingRequestStatus =
+  | "Draft"
+  | "Submitted"
+  | "UnderReview"
+  | "Approved"
+  | "Rejected"
+  | "ConvertedToCampaign";
 export type PlaylistStatus = "Draft" | "Published" | "Downloaded" | "Expired";
 
 export interface PagedQuery {
@@ -181,6 +188,24 @@ export interface ApiCampaign {
   dailyBudget: number | null;
   totalBudget: number | null;
   maxCpm: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiBookingRequest {
+  id: string;
+  advertiserId: string;
+  name: string;
+  dateFrom: string;
+  dateTo: string;
+  cities: string[];
+  buildingTypes: DeliveryBuildingType[];
+  screenOrientations: DeliveryScreenOrientation[];
+  creativeDurationSeconds: number;
+  budget: number;
+  campaignObjective: string;
+  notes: string;
+  status: BookingRequestStatus;
   createdAt: string;
   updatedAt: string;
 }

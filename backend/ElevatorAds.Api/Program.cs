@@ -4,6 +4,8 @@ using ElevatorAds.Api.Auth;
 using ElevatorAds.Application.Advertisers;
 using ElevatorAds.Application.Advertisers.Dtos;
 using ElevatorAds.Application.Auth;
+using ElevatorAds.Application.BookingRequests;
+using ElevatorAds.Application.BookingRequests.Dtos;
 using ElevatorAds.Domain.Common;
 using ElevatorAds.Application.Buildings;
 using ElevatorAds.Application.Buildings.Dtos;
@@ -85,6 +87,8 @@ builder.Services.AddScoped<ICreativeRepository, EfCreativeRepository>();
 builder.Services.AddScoped<CreativeService>();
 builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
 builder.Services.AddScoped<CampaignService>();
+builder.Services.AddScoped<ICampaignBookingRequestRepository, EfCampaignBookingRequestRepository>();
+builder.Services.AddScoped<BookingRequestService>();
 builder.Services.AddScoped<ICampaignCreativeRepository, EfCampaignCreativeRepository>();
 builder.Services.AddScoped<CampaignCreativeService>();
 builder.Services.AddScoped<ICampaignDeliveryConstraintsRepository, EfCampaignDeliveryConstraintsRepository>();
@@ -553,6 +557,76 @@ campaigns.MapPut("/{id:guid}", async (Guid id, CampaignService.UpdateCampaignReq
 campaigns.MapDelete("/{id:guid}", async (Guid id, CampaignService service) =>
     await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
     .RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+var bookingRequests = app.MapGroup("/api/booking-requests");
+
+bookingRequests.MapGet("/", async ([AsParameters] PagedQuery query, BookingRequestService service) =>
+{
+    if (ValidatePagedQuery(query) is { } error)
+    {
+        return Results.BadRequest(new { error });
+    }
+
+    return Results.Ok(await service.GetPagedAsync(query));
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+bookingRequests.MapGet("/{id:guid}", async (Guid id, BookingRequestService service) =>
+{
+    var bookingRequest = await service.GetByIdAsync(id);
+    return bookingRequest is null ? Results.NotFound() : Results.Ok(bookingRequest);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+bookingRequests.MapPost("/", async (CreateBookingRequestDto request, BookingRequestService service) =>
+{
+    var result = await service.CreateAsync(request);
+    return result.IsSuccess
+        ? Results.Created($"/api/booking-requests/{result.Value!.Id}", result.Value)
+        : Results.UnprocessableEntity(new { error = result.Error });
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+bookingRequests.MapPut("/{id:guid}", async (Guid id, UpdateBookingRequestDto request, BookingRequestService service) =>
+{
+    var result = await service.UpdateAsync(id, request);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+bookingRequests.MapPost("/{id:guid}/submit", async (Guid id, BookingRequestService service) =>
+{
+    var result = await service.SubmitAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+bookingRequests.MapPost("/{id:guid}/approve", async (Guid id, BookingRequestService service) =>
+{
+    var result = await service.ApproveAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+bookingRequests.MapPost("/{id:guid}/reject", async (Guid id, BookingRequestService service) =>
+{
+    var result = await service.RejectAsync(id);
+    if (!result.IsSuccess)
+    {
+        return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
 
 campaigns.MapGet("/{campaignId:guid}/creatives", async (Guid campaignId, CampaignCreativeService service) =>
 {

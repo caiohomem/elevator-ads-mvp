@@ -2,11 +2,17 @@
 
 Elevator Ads MVP is a programmatic DOOH advertising platform for elevator screens.
 
-This repository contains the full-stack scaffold and the initial feature set: Building management, Screen management, Advertisers, Creatives, Campaigns, Campaign Delivery Constraints, Daily Playlist generation, Playlist Download, Proof-of-Play reporting, Delivery Reports, and an External Buyer Simulator for forecast requests. Database integration uses PostgreSQL with Entity Framework Core. Authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
+This repository contains the full-stack scaffold and the initial feature set: Building management, Screen management, Advertisers, Creatives, Campaigns, Campaign Booking Requests, Campaign Delivery Constraints, Daily Playlist generation, Playlist Download, Proof-of-Play reporting, Delivery Reports, and an External Buyer Simulator for forecast requests. Database integration uses PostgreSQL with Entity Framework Core. Authentication, SSP/DSP logic, auctioning, and OpenRTB support are intentionally out of scope for this phase.
 
 The MVP delivery model is scheduled DOOH playlist delivery. Screens and players download a daily playlist, execute the same programmed sequence throughout the day, and report playback after execution rather than requesting ads in real time.
 
 The External Buyer Simulator is a DSP/SSP-style forecasting surface adapted to that scheduled delivery model. It allows a simulated external buyer to estimate eligible inventory, plays, audience, cost, and rough capacity before API keys, external buyer authentication, or any OpenRTB adapter exist.
+
+## Campaign Booking Requests
+
+A campaign booking request captures commercial demand before it becomes a real campaign. It is the structured handoff between an advertiser or operator expressing intent and the later operational steps such as forecast review, approval, campaign creation, and daily playlist allocation.
+
+This workflow is intentionally not OpenRTB and not real-time bidding. Elevator screens do not request ads live. A booking request describes a planned scheduled DOOH buy, such as a 15-second campaign in selected cities and building types for a fixed date range and budget, which can later be reviewed and converted by operators in a later issue.
 
 ## Tech Stack
 
@@ -141,6 +147,7 @@ This Compose stack uses its own named volume, `elevator_ads_postgres_data`. The 
 - Buildable .NET solution
 - Minimal API health endpoint
 - Building management CRUD with in-memory persistence
+- Campaign booking request workflow before campaign creation
 - Backend test project with health and building endpoint coverage
 - Basic Next.js admin app
 - Initial documentation

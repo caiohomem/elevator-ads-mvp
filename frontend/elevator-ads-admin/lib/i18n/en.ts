@@ -10,6 +10,7 @@ export interface TranslationDictionary {
     advertisers: string;
     creatives: string;
     campaigns: string;
+    bookingRequests: string;
     programmaticSimulator: string;
     playlists: string;
     reports: string;
@@ -82,6 +83,37 @@ export interface TranslationDictionary {
     advertisers: { title: string; description: string };
     creatives: { title: string; description: string };
     campaigns: { title: string; description: string };
+    bookingRequests: {
+      title: string;
+      description: string;
+      saveSuccess: string;
+      submitSuccess: string;
+      approveSuccess: string;
+      rejectSuccess: string;
+      view: string;
+      detailTitle: string;
+      columns: {
+        name: string;
+        advertiser: string;
+        flight: string;
+        status: string;
+        budget: string;
+        createdAt: string;
+      };
+      statuses: Record<"Draft" | "Submitted" | "UnderReview" | "Approved" | "Rejected" | "ConvertedToCampaign", string>;
+      details: {
+        advertiser: string;
+        dateFrom: string;
+        dateTo: string;
+        cities: string;
+        buildingTypes: string;
+        screenOrientations: string;
+        creativeDurationSeconds: string;
+        budget: string;
+        campaignObjective: string;
+        notes: string;
+      };
+    };
     programmaticSimulator: { title: string; description: string };
     playlists: {
       title: string;
@@ -207,12 +239,15 @@ export interface TranslationDictionary {
     editCreative: string;
     newCampaign: string;
     editCampaign: string;
+    newBookingRequest: string;
+    editBookingRequest: string;
     manageCreatives: string;
     assignedCreatives: string;
     availableCreatives: string;
     assign: string;
     remove: string;
     startBeforeEnd: string;
+    submit: string;
     submitForReview: string;
     approve: string;
     reject: string;
@@ -286,6 +321,20 @@ export interface TranslationDictionary {
       totalBudget: string;
       maxCpm: string;
     };
+    bookingRequest: {
+      advertiser: string;
+      name: string;
+      dateFrom: string;
+      dateTo: string;
+      cities: string;
+      citiesHelp: string;
+      buildingTypes: string;
+      screenOrientations: string;
+      creativeDurationSeconds: string;
+      budget: string;
+      campaignObjective: string;
+      notes: string;
+    };
   };
 }
 
@@ -301,6 +350,7 @@ export const en: TranslationDictionary = {
     advertisers: "Advertisers",
     creatives: "Creatives",
     campaigns: "Campaigns",
+    bookingRequests: "Booking Requests",
     programmaticSimulator: "Programmatic Simulator",
     playlists: "Playlists",
     reports: "Reports",
@@ -388,6 +438,44 @@ export const en: TranslationDictionary = {
     campaigns: {
       title: "Campaigns",
       description: "Flight windows, budgets, and targeting constraints.",
+    },
+    bookingRequests: {
+      title: "Booking requests",
+      description: "Structured commercial demand captured before forecast, approval, campaign creation, and playlist allocation.",
+      saveSuccess: "Booking request saved.",
+      submitSuccess: "Booking request submitted.",
+      approveSuccess: "Booking request approved.",
+      rejectSuccess: "Booking request rejected.",
+      view: "View",
+      detailTitle: "Booking request details",
+      columns: {
+        name: "Name",
+        advertiser: "Advertiser",
+        flight: "Flight",
+        status: "Status",
+        budget: "Budget",
+        createdAt: "Created",
+      },
+      statuses: {
+        Draft: "Draft",
+        Submitted: "Submitted",
+        UnderReview: "Under review",
+        Approved: "Approved",
+        Rejected: "Rejected",
+        ConvertedToCampaign: "Converted to campaign",
+      },
+      details: {
+        advertiser: "Advertiser",
+        dateFrom: "Date from",
+        dateTo: "Date to",
+        cities: "Cities",
+        buildingTypes: "Building types",
+        screenOrientations: "Screen orientations",
+        creativeDurationSeconds: "Creative duration",
+        budget: "Budget",
+        campaignObjective: "Campaign objective",
+        notes: "Notes",
+      },
     },
     programmaticSimulator: {
       title: "Programmatic simulator",
@@ -526,12 +614,15 @@ export const en: TranslationDictionary = {
     editCreative: "Edit creative",
     newCampaign: "New campaign",
     editCampaign: "Edit campaign",
+    newBookingRequest: "New booking request",
+    editBookingRequest: "Edit booking request",
     manageCreatives: "Manage creatives",
     assignedCreatives: "Assigned creatives",
     availableCreatives: "Available approved creatives",
     assign: "Assign",
     remove: "Remove",
     startBeforeEnd: "Start date must be before or equal to end date.",
+    submit: "Submit",
     submitForReview: "Submit for review",
     approve: "Approve",
     reject: "Reject",
@@ -604,6 +695,20 @@ export const en: TranslationDictionary = {
       dailyBudget: "Daily budget",
       totalBudget: "Total budget",
       maxCpm: "Max CPM",
+    },
+    bookingRequest: {
+      advertiser: "Advertiser",
+      name: "Name",
+      dateFrom: "Date from",
+      dateTo: "Date to",
+      cities: "Cities",
+      citiesHelp: "Lisbon, Porto, Madrid",
+      buildingTypes: "Building types",
+      screenOrientations: "Screen orientations",
+      creativeDurationSeconds: "Creative duration (seconds)",
+      budget: "Budget",
+      campaignObjective: "Campaign objective",
+      notes: "Notes",
     },
   },
 };
