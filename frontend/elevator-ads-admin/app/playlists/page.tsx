@@ -9,7 +9,8 @@ import { PaginationControls } from "@/components/PaginationControls";
 import { PlaylistDetailPanel } from "@/components/PlaylistDetailPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TableFilters } from "@/components/TableFilters";
-import { generatePlaylists, getDailyPlaylistById, getDailyPlaylistsPaged, publishPlaylist } from "@/lib/api";
+import { generatePlaylists, getDailyPlaylistById, getDailyPlaylistsPaged, getScreensList, publishPlaylist } from "@/lib/api";
+import { useApiData } from "@/lib/api/useApiData";
 import { usePagedData } from "@/lib/api/usePagedData";
 import { useTranslation } from "@/lib/i18n";
 import type { ApiDailyPlaylist, DailyPlaylist } from "@/lib/types";
@@ -28,6 +29,12 @@ export default function PlaylistsPage() {
   const labels = dictionary.pages.playlists;
 
   const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getDailyPlaylistsPaged, "playlists");
+  const screensState = useApiData(getScreensList);
+  const screenNames = new Map(
+    screensState.status === "ok"
+      ? screensState.data.map((screen) => [screen.id, screen.name || screen.externalCode] as const)
+      : [],
+  );
 
   const [selectedDate, setSelectedDate] = useState<string>(todayIsoDate);
   const [generating, setGenerating] = useState(false);
@@ -114,7 +121,7 @@ export default function PlaylistsPage() {
 
   const columns: TableColumn<ApiDailyPlaylist>[] = [
     { key: "date", header: labels.columnDate, render: (row) => <span className="font-mono text-xs">{row.date}</span> },
-    { key: "screen", header: labels.columnScreen, render: (row) => <span className="font-mono text-xs">{row.screenId}</span> },
+    { key: "screen", header: labels.columnScreen, render: (row) => screenNames.get(row.screenId) ?? "—" },
     { key: "version", header: labels.columnVersion, render: (row) => <span className="font-mono text-xs">v{row.version}</span> },
     { key: "status", header: labels.columnStatus, render: (row) => <StatusBadge status={row.status} /> },
     { key: "items", header: labels.columnItems, render: (row) => row.items.length },

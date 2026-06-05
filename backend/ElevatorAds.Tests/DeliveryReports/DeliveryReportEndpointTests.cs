@@ -39,12 +39,13 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var date = new DateOnly(2026, 2, 10);
-        var screenId = Guid.NewGuid();
-        var campaignId = Guid.NewGuid();
-        var creativeId = Guid.NewGuid();
+        var screen = await CreateScreenAsync(client, "North Tower Lobby");
+        var advertiser = await CreateAdvertiserAsync(client, "Atlas Media");
+        var campaign = await CreateCampaignAsync(client, advertiser.Id, "Morning Reach");
+        var creative = await CreateCreativeAsync(client, advertiser.Id, "Welcome Loop");
         await SeedEventsAsync(factory,
-            BuildEvent(date.ToDateTime(new TimeOnly(8, 0)), screenId, campaignId, creativeId, 15),
-            BuildEvent(date.ToDateTime(new TimeOnly(9, 0)), screenId, campaignId, creativeId, 20));
+            BuildEvent(date.ToDateTime(new TimeOnly(8, 0)), screen.Id, campaign.Id, creative.Id, 15),
+            BuildEvent(date.ToDateTime(new TimeOnly(9, 0)), screen.Id, campaign.Id, creative.Id, 20));
 
         var response = await client.GetAsync($"/api/reports/overview?date={date:yyyy-MM-dd}");
 
@@ -54,13 +55,16 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(2, report!.TotalPlays);
         Assert.Equal(35L, report.TotalPlayedSeconds);
         var campaignSummary = Assert.Single(report.ByCampaign);
-        Assert.Equal(campaignId, campaignSummary.Id);
+        Assert.Equal(campaign.Id, campaignSummary.Id);
+        Assert.Equal(campaign.Name, campaignSummary.Name);
         Assert.Equal(2, campaignSummary.Plays);
         Assert.Equal(35L, campaignSummary.PlayedSeconds);
         var screenSummary = Assert.Single(report.ByScreen);
-        Assert.Equal(screenId, screenSummary.Id);
+        Assert.Equal(screen.Id, screenSummary.Id);
+        Assert.Equal(screen.Name, screenSummary.Name);
         var creativeSummary = Assert.Single(report.ByCreative);
-        Assert.Equal(creativeId, creativeSummary.Id);
+        Assert.Equal(creative.Id, creativeSummary.Id);
+        Assert.Equal(creative.Name, creativeSummary.Name);
     }
 
     [Fact]
@@ -145,14 +149,15 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     {
         await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
-        var firstCampaign = Guid.NewGuid();
-        var secondCampaign = Guid.NewGuid();
-        var screenId = Guid.NewGuid();
-        var creativeId = Guid.NewGuid();
+        var screen = await CreateScreenAsync(client, "West Lift Screen");
+        var advertiser = await CreateAdvertiserAsync(client, "Northwind");
+        var firstCampaign = await CreateCampaignAsync(client, advertiser.Id, "Residency Launch");
+        var secondCampaign = await CreateCampaignAsync(client, advertiser.Id, "Gym Retargeting");
+        var creative = await CreateCreativeAsync(client, advertiser.Id, "Loop A");
         await SeedEventsAsync(factory,
-            BuildEvent(new DateTime(2026, 5, 1, 10, 0, 0), screenId, firstCampaign, creativeId, 10),
-            BuildEvent(new DateTime(2026, 5, 2, 10, 0, 0), screenId, firstCampaign, creativeId, 20),
-            BuildEvent(new DateTime(2026, 5, 3, 10, 0, 0), screenId, secondCampaign, creativeId, 30));
+            BuildEvent(new DateTime(2026, 5, 1, 10, 0, 0), screen.Id, firstCampaign.Id, creative.Id, 10),
+            BuildEvent(new DateTime(2026, 5, 2, 10, 0, 0), screen.Id, firstCampaign.Id, creative.Id, 20),
+            BuildEvent(new DateTime(2026, 5, 3, 10, 0, 0), screen.Id, secondCampaign.Id, creative.Id, 30));
 
         var response = await client.GetAsync("/api/reports/campaigns?from=2026-05-01&to=2026-05-03");
 
@@ -164,10 +169,12 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(3, report.TotalPlays);
         Assert.Equal(60L, report.TotalPlayedSeconds);
         Assert.Equal(2, report.Campaigns.Count);
-        var firstSummary = report.Campaigns.Single(item => item.Id == firstCampaign);
+        var firstSummary = report.Campaigns.Single(item => item.Id == firstCampaign.Id);
+        Assert.Equal(firstCampaign.Name, firstSummary.Name);
         Assert.Equal(2, firstSummary.Plays);
         Assert.Equal(30L, firstSummary.PlayedSeconds);
-        var secondSummary = report.Campaigns.Single(item => item.Id == secondCampaign);
+        var secondSummary = report.Campaigns.Single(item => item.Id == secondCampaign.Id);
+        Assert.Equal(secondCampaign.Name, secondSummary.Name);
         Assert.Equal(1, secondSummary.Plays);
         Assert.Equal(30L, secondSummary.PlayedSeconds);
     }
@@ -241,14 +248,14 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
     {
         await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
-        var firstScreen = Guid.NewGuid();
-        var secondScreen = Guid.NewGuid();
+        var firstScreen = await CreateScreenAsync(client, "Lobby Portrait");
+        var secondScreen = await CreateScreenAsync(client, "Garage Entrance");
         var campaignId = Guid.NewGuid();
         var creativeId = Guid.NewGuid();
         await SeedEventsAsync(factory,
-            BuildEvent(new DateTime(2026, 7, 1, 10, 0, 0), firstScreen, campaignId, creativeId, 10),
-            BuildEvent(new DateTime(2026, 7, 2, 10, 0, 0), firstScreen, campaignId, creativeId, 10),
-            BuildEvent(new DateTime(2026, 7, 3, 10, 0, 0), secondScreen, campaignId, creativeId, 20));
+            BuildEvent(new DateTime(2026, 7, 1, 10, 0, 0), firstScreen.Id, campaignId, creativeId, 10),
+            BuildEvent(new DateTime(2026, 7, 2, 10, 0, 0), firstScreen.Id, campaignId, creativeId, 10),
+            BuildEvent(new DateTime(2026, 7, 3, 10, 0, 0), secondScreen.Id, campaignId, creativeId, 20));
 
         var response = await client.GetAsync("/api/reports/screens?from=2026-07-01&to=2026-07-03");
 
@@ -260,9 +267,12 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal(3, report.TotalPlays);
         Assert.Equal(40L, report.TotalPlayedSeconds);
         Assert.Equal(2, report.Screens.Count);
-        var firstSummary = report.Screens.Single(item => item.Id == firstScreen);
+        var firstSummary = report.Screens.Single(item => item.Id == firstScreen.Id);
+        Assert.Equal(firstScreen.Name, firstSummary.Name);
         Assert.Equal(2, firstSummary.Plays);
         Assert.Equal(20L, firstSummary.PlayedSeconds);
+        var secondSummary = report.Screens.Single(item => item.Id == secondScreen.Id);
+        Assert.Equal(secondScreen.Name, secondSummary.Name);
     }
 
     [Fact]
@@ -352,7 +362,97 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
             CreatedAt = DateTime.UtcNow
         };
 
-    private sealed record GroupSummaryDto(Guid Id, int Plays, long PlayedSeconds);
+    private async Task<ScreenDto> CreateScreenAsync(HttpClient client, string name)
+    {
+        var building = await CreateBuildingAsync(client, $"{name} Building");
+        var request = new CreateScreenRequest(
+            building.Id,
+            name,
+            $"SCR-{Guid.NewGuid():N}",
+            1080,
+            1920,
+            "Portrait",
+            "Active");
+
+        var response = await client.PostAsJsonAsync("/api/screens", request);
+        response.EnsureSuccessStatusCode();
+        var screen = await response.Content.ReadFromJsonAsync<ScreenDto>();
+        Assert.NotNull(screen);
+        return screen!;
+    }
+
+    private async Task<BuildingDto> CreateBuildingAsync(HttpClient client, string name)
+    {
+        var request = new CreateBuildingRequest(
+            name,
+            "123 Main St",
+            "Lisbon",
+            "Portugal",
+            "1000-001",
+            "Residential",
+            500);
+
+        var response = await client.PostAsJsonAsync("/api/buildings", request);
+        response.EnsureSuccessStatusCode();
+        var building = await response.Content.ReadFromJsonAsync<BuildingDto>();
+        Assert.NotNull(building);
+        return building!;
+    }
+
+    private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client, string name)
+    {
+        var request = new CreateAdvertiserRequest(
+            name,
+            $"{name} LLC",
+            $"{Random.Shared.NextInt64(100000000, 999999999)}",
+            "Jane Doe",
+            $"{Guid.NewGuid():N}@example.test",
+            "+351123456789",
+            "Active");
+
+        var response = await client.PostAsJsonAsync("/api/advertisers", request);
+        response.EnsureSuccessStatusCode();
+        var advertiser = await response.Content.ReadFromJsonAsync<AdvertiserDto>();
+        Assert.NotNull(advertiser);
+        return advertiser!;
+    }
+
+    private async Task<CampaignDto> CreateCampaignAsync(HttpClient client, Guid advertiserId, string name)
+    {
+        var request = new CreateCampaignRequest(
+            advertiserId,
+            name,
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc),
+            "Active",
+            100m,
+            1000m,
+            8m);
+
+        var response = await client.PostAsJsonAsync("/api/campaigns", request);
+        response.EnsureSuccessStatusCode();
+        var campaign = await response.Content.ReadFromJsonAsync<CampaignDto>();
+        Assert.NotNull(campaign);
+        return campaign!;
+    }
+
+    private async Task<CreativeDto> CreateCreativeAsync(HttpClient client, Guid advertiserId, string name)
+    {
+        var request = new CreateCreativeRequest(
+            advertiserId,
+            name,
+            $"https://cdn.example.com/{Guid.NewGuid():N}.jpg",
+            "Image",
+            15);
+
+        var response = await client.PostAsJsonAsync("/api/creatives", request);
+        response.EnsureSuccessStatusCode();
+        var creative = await response.Content.ReadFromJsonAsync<CreativeDto>();
+        Assert.NotNull(creative);
+        return creative!;
+    }
+
+    private sealed record GroupSummaryDto(Guid Id, string Name, int Plays, long PlayedSeconds);
 
     private sealed record OverviewReportDto(
         string Date,
@@ -375,4 +475,109 @@ public class DeliveryReportEndpointTests : IClassFixture<TestWebApplicationFacto
         int TotalPlays,
         long TotalPlayedSeconds,
         IReadOnlyList<GroupSummaryDto> Screens);
+
+    private sealed record CreateBuildingRequest(
+        string Name,
+        string Address,
+        string City,
+        string Country,
+        string PostalCode,
+        string BuildingType,
+        int EstimatedDailyAudience);
+
+    private sealed record BuildingDto(
+        Guid Id,
+        string Name,
+        string Address,
+        string City,
+        string Country,
+        string PostalCode,
+        string BuildingType,
+        int EstimatedDailyAudience,
+        DateTime CreatedAt,
+        DateTime UpdatedAt);
+
+    private sealed record CreateScreenRequest(
+        Guid BuildingId,
+        string Name,
+        string ExternalCode,
+        int ResolutionWidth,
+        int ResolutionHeight,
+        string Orientation,
+        string Status);
+
+    private sealed record ScreenDto(
+        Guid Id,
+        Guid BuildingId,
+        string Name,
+        string ExternalCode,
+        int ResolutionWidth,
+        int ResolutionHeight,
+        string Orientation,
+        string Status,
+        DateTime? LastSeenAt,
+        DateTime CreatedAt,
+        DateTime UpdatedAt);
+
+    private sealed record CreateAdvertiserRequest(
+        string Name,
+        string LegalName,
+        string TaxId,
+        string ContactName,
+        string ContactEmail,
+        string Phone,
+        string Status);
+
+    private sealed record AdvertiserDto(
+        Guid Id,
+        string Name,
+        string LegalName,
+        string TaxId,
+        string ContactName,
+        string ContactEmail,
+        string Phone,
+        string Status,
+        DateTime CreatedAt,
+        DateTime UpdatedAt);
+
+    private sealed record CreateCampaignRequest(
+        Guid AdvertiserId,
+        string Name,
+        DateTime? StartDate,
+        DateTime? EndDate,
+        string Status,
+        decimal? DailyBudget,
+        decimal? TotalBudget,
+        decimal? MaxCpm);
+
+    private sealed record CampaignDto(
+        Guid Id,
+        Guid AdvertiserId,
+        string Name,
+        DateTime? StartDate,
+        DateTime? EndDate,
+        string Status,
+        decimal? DailyBudget,
+        decimal? TotalBudget,
+        decimal? MaxCpm,
+        DateTime CreatedAt,
+        DateTime UpdatedAt);
+
+    private sealed record CreateCreativeRequest(
+        Guid AdvertiserId,
+        string Name,
+        string MediaUrl,
+        string MediaType,
+        int DurationSeconds);
+
+    private sealed record CreativeDto(
+        Guid Id,
+        Guid AdvertiserId,
+        string Name,
+        string MediaUrl,
+        string MediaType,
+        int DurationSeconds,
+        string ApprovalStatus,
+        DateTime CreatedAt,
+        DateTime UpdatedAt);
 }

@@ -27,8 +27,14 @@ type StatusAction = "submit" | "approve" | "reject";
 export default function CreativesPage() {
   const { dictionary } = useTranslation();
   const forms = dictionary.forms;
+  const page = dictionary.pages.creatives;
   const { state, query, setPage, setPageSize, setSearch, setStatus } = usePagedData(getCreativesPaged, "creatives");
   const advertisersState = useApiData(getAdvertisersList);
+  const advertiserNames = new Map(
+    advertisersState.status === "ok"
+      ? advertisersState.data.map((advertiser) => [advertiser.id, advertiser.name] as const)
+      : [],
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ApiCreative | null>(null);
   const [actionInFlight, setActionInFlight] = useState<{ id: string; action: StatusAction } | null>(null);
@@ -79,17 +85,17 @@ export default function CreativesPage() {
   };
 
   const columns: TableColumn<ApiCreative>[] = [
-    { key: "name", header: "Name", render: (row) => <span className="font-semibold">{row.name}</span> },
-    { key: "advertiser", header: "Advertiser", render: (row) => row.advertiserId },
-    { key: "mediaType", header: "Media type", render: (row) => row.mediaType },
+    { key: "name", header: forms.creative.name, render: (row) => <span className="font-semibold">{row.name}</span> },
+    { key: "advertiser", header: forms.creative.advertiserId, render: (row) => advertiserNames.get(row.advertiserId) ?? "—" },
+    { key: "mediaType", header: forms.creative.mediaType, render: (row) => row.mediaType },
     {
       key: "duration",
-      header: "Duration",
+      header: forms.creative.durationSeconds,
       render: (row) => <span className="font-mono text-xs">{row.durationSeconds}s</span>,
     },
     {
       key: "approvalStatus",
-      header: "Approval status",
+      header: page.columns.approvalStatus,
       render: (row) => <StatusBadge status={row.approvalStatus} />,
     },
     {

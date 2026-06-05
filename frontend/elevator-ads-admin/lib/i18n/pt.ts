@@ -90,6 +90,10 @@ export const pt: TranslationDictionary = {
     screens: {
       title: "Telas",
       description: "Saude dos dispositivos, playlist atual e status operacional.",
+      columns: {
+        resolution: "Resolucao",
+        lastSeen: "Ultima atividade",
+      },
     },
     advertisers: {
       title: "Anunciantes",
@@ -132,6 +136,9 @@ export const pt: TranslationDictionary = {
     creatives: {
       title: "Criativos",
       description: "Pecas prontas para revisao e entrega nas telas dos elevadores.",
+      columns: {
+        approvalStatus: "Status de aprovacao",
+      },
     },
     campaigns: {
       title: "Campanhas",

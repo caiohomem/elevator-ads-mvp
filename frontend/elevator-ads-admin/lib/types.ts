@@ -373,6 +373,7 @@ export interface ApiDailyPlaylist {
 
 export interface GroupSummary {
   id: string;
+  name: string;
   plays: number;
   playedSeconds: number;
 }
@@ -479,10 +480,13 @@ export interface AdvertiserCampaignReport {
 export interface ProofOfPlayEvent {
   id: string;
   screenId: string;
+  screenName: string;
   playlistId: string;
   playlistItemId: string;
   campaignId: string;
+  campaignName: string;
   creativeId: string;
+  creativeName: string;
   playedAt: string;
   durationSeconds: number;
   createdAt: string;
