@@ -8,6 +8,15 @@ The MVP delivery model is scheduled DOOH playlist delivery. Screens and players 
 
 The External Buyer Simulator is a DSP/SSP-style forecasting surface adapted to that scheduled delivery model. It allows a simulated external buyer to estimate eligible inventory, plays, audience, cost, and rough capacity before API keys, external buyer authentication, or any OpenRTB adapter exist.
 
+## Advertiser API Keys
+
+Advertiser API keys are the foundation for future external advertiser, agency, and partner APIs. They are designed for the scheduled playlist commercial flow, not for live screen-side ad requests.
+
+- Keys are created per advertiser and scoped to specific capabilities such as `inventory:read`, `forecast:create`, `booking:create`, and `reports:read`.
+- The plain API key is shown only once at creation time. The backend stores only a SHA-256 hash and a short key prefix for identification.
+- Future external endpoints validate keys through the `X-Api-Key` header.
+- This is the authentication foundation for later advertiser-facing APIs and eventual OpenRTB adapters, but it does not add OpenRTB, real-time bidding, or live next-ad serving in this phase.
+
 ## Playlist Simulation
 
 Playlist simulation is an internal planning tool for the scheduled elevator delivery model. It helps operators estimate what a daily loop would look like for a booking request, campaign, or inventory package before any real playlist is published.
@@ -200,6 +209,6 @@ Warnings are returned whenever the report depends on fallback playlist data or w
 
 ## Future Roadmap Summary
 
-Future phases include screen management, advertiser and campaign management, creative management, campaign delivery constraints, daily playlist generation, playlist download, proof-of-play tracking, reports, richer external buyer APIs, and only later SSP/DSP models with API keys and an OpenRTB adapter.
+Future phases include richer external buyer APIs on top of advertiser API keys, proof-of-play tracking, more operational reporting, and only later SSP/DSP models with an OpenRTB adapter.
 
 See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.

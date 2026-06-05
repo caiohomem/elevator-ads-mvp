@@ -1,4 +1,4 @@
-import { apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
+import { apiFetch, apiFetchList, apiFetchPaged, apiMutate, type ApiResult } from "@/lib/api/client";
 import type {
   Advertiser,
   ApiAdvertiser,
@@ -63,6 +63,10 @@ export async function getAdvertisers(): Promise<ApiResult<Advertiser[]>> {
 
 export async function getAdvertisersList(): Promise<ApiResult<ApiAdvertiser[]>> {
   return apiFetchList<ApiAdvertiser>(advertisersEndpoint);
+}
+
+export async function getAdvertiserById(id: string): Promise<ApiResult<ApiAdvertiser>> {
+  return apiFetch<ApiAdvertiser>(`${advertisersEndpoint}/${id}`);
 }
 
 export async function getAdvertisersPaged(

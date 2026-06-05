@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Building> Buildings => Set<Building>();
     public DbSet<Screen> Screens => Set<Screen>();
     public DbSet<Advertiser> Advertisers => Set<Advertiser>();
+    public DbSet<AdvertiserApiKey> AdvertiserApiKeys => Set<AdvertiserApiKey>();
     public DbSet<Creative> Creatives => Set<Creative>();
     public DbSet<Campaign> Campaigns => Set<Campaign>();
     public DbSet<CampaignBookingRequest> CampaignBookingRequests => Set<CampaignBookingRequest>();
