@@ -7,9 +7,14 @@ namespace ElevatorAds.Tests.Campaigns;
 
 public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
+    private readonly TestWebApplicationFactory _factory;
+
+    public BookingRequestEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
+
     [Fact]
     public async Task PostBookingRequest_CreatesBookingRequest()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = new CreateBookingRequestRequest(
@@ -39,6 +44,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetBookingRequests_ReturnsPagedResult()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
 
@@ -59,6 +65,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task GetBookingRequest_ById_ReturnsBookingRequest()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var created = await CreateBookingRequestAsync(client, advertiser.Id);
@@ -75,6 +82,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PutBookingRequest_UpdatesDraftBookingRequest()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var created = await CreateBookingRequestAsync(client, advertiser.Id);
@@ -104,6 +112,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task SubmitBookingRequest_TransitionsToSubmitted()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var created = await CreateBookingRequestAsync(client, advertiser.Id);
@@ -120,6 +129,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task ApproveBookingRequest_TransitionsToApproved()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var created = await CreateBookingRequestAsync(client, advertiser.Id);
@@ -137,6 +147,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task RejectBookingRequest_TransitionsToRejected()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var created = await CreateBookingRequestAsync(client, advertiser.Id);
@@ -154,6 +165,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PostBookingRequest_InvalidDateRange_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = CreateRequest(
@@ -169,6 +181,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PostBookingRequest_InvalidCreativeDuration_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = CreateRequest(advertiser.Id, creativeDurationSeconds: 0);
@@ -181,6 +194,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PostBookingRequest_NegativeBudget_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var advertiser = await CreateAdvertiserAsync(client);
         var request = CreateRequest(advertiser.Id, budget: -1m);
@@ -193,6 +207,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
     [Fact]
     public async Task PostBookingRequest_MissingAdvertiser_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = CreateRequest(Guid.Empty);
 
@@ -201,7 +216,7 @@ public class BookingRequestEndpointTests : IClassFixture<TestWebApplicationFacto
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private static HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private static CreateBookingRequestRequest CreateRequest(
         Guid advertiserId,

@@ -14,6 +14,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignApprovedCreativeToCampaign_ReturnsCreated()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateAndApproveCreativeAsync(client, factory);
@@ -32,6 +33,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task ListCampaignCreatives_ReturnsOk()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateAndApproveCreativeAsync(client, factory);
@@ -49,6 +51,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task RemoveCreativeFromCampaign_ReturnsNoContent()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateAndApproveCreativeAsync(client, factory);
@@ -67,6 +70,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignDuplicateCreativeToCampaign_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateAndApproveCreativeAsync(client, factory);
@@ -80,6 +84,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignNonApprovedCreativeToCampaign_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, _) = CreateClientWithFactory();
         var campaign = await CreateCampaignAsync(client);
         var creative = await CreateCreativeAsync(client);
@@ -92,6 +97,7 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
     [Fact]
     public async Task AssignCreativeToMissingCampaign_Returns422Or404()
     {
+        await _factory.ResetDatabaseAsync();
         var (client, factory) = CreateClientWithFactory();
         var creative = await CreateAndApproveCreativeAsync(client, factory);
 
@@ -102,9 +108,8 @@ public class CampaignCreativeEndpointTests : IClassFixture<TestWebApplicationFac
 
     private (HttpClient Client, TestWebApplicationFactory Factory) CreateClientWithFactory()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient();
-        return (client, factory);
+        var client = _factory.CreateAuthenticatedClient();
+        return (client, _factory);
     }
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)

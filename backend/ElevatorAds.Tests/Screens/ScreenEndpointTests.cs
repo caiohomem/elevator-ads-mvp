@@ -15,6 +15,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostScreen_CreatesScreen()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var building = await CreateBuildingAsync(client);
         var request = new CreateScreenRequest(
@@ -41,6 +42,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetScreens_ReturnsPagedResult_AndSupportsFiltering()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var alpha = await CreateScreenAsync(client, "Alpha Screen", "Active");
         var beta = await CreateScreenAsync(client, "Beta Screen", "Inactive");
@@ -81,6 +83,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetScreenById_ReturnsScreen()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateScreenAsync(client);
 
@@ -97,6 +100,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PutScreen_UpdatesScreen()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateScreenAsync(client);
         var request = new CreateScreenRequest(
@@ -125,6 +129,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task DeleteScreen_RemovesScreen()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateScreenAsync(client);
 
@@ -138,6 +143,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostStatusCheck_UpdatesLastSeenAt()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateScreenAsync(client);
 
@@ -154,6 +160,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostScreen_WithoutBuildingId_ReturnsValidationFailure()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new CreateScreenRequest(
             Guid.Empty,
@@ -172,6 +179,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostScreen_WithInvalidResolution_ReturnsValidationFailure()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var building = await CreateBuildingAsync(client);
         var request = new CreateScreenRequest(
@@ -188,7 +196,7 @@ public class ScreenEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private async Task<BuildingDto> CreateBuildingAsync(HttpClient client)
     {

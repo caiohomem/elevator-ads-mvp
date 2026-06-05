@@ -14,6 +14,14 @@ A campaign booking request captures commercial demand before it becomes a real c
 
 This workflow is intentionally not OpenRTB and not real-time bidding. Elevator screens do not request ads live. A booking request describes a planned scheduled DOOH buy, such as a 15-second campaign in selected cities and building types for a fixed date range and budget, which can later be reviewed and converted by operators in a later issue.
 
+## Campaign Forecasts
+
+A campaign forecast is the estimate generated for a booking request before approval or campaign conversion. It helps sales and operations judge whether the requested date range and targeting can be supported by the currently known inventory.
+
+The MVP forecast is an estimate only, not proof-of-play. It uses the booking request filters for dates, cities, building types, and screen orientations; matches those filters against known buildings and active screens; estimates plays using a simple 480-second scheduled playlist loop assumption; estimates audience from building-level daily audience values when available; and estimates cost with a placeholder base CPM of 10. Warnings are returned whenever the forecast depends on incomplete data or placeholder assumptions.
+
+In the commercial flow, forecast sits between booking request capture and any later approval or manual campaign conversion. It does not create campaigns automatically, allocate playlist slots automatically, or introduce OpenRTB or real-time bidding behavior.
+
 ## Tech Stack
 
 - Backend: C# / .NET, ASP.NET Core Web API

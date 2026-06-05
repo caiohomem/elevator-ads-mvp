@@ -21,6 +21,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
     [Fact]
     public async Task GetDeliveryConstraints_WhenNoneExist_ReturnsNotFound()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var campaign = await CreateCampaignAsync(client);
 
@@ -32,6 +33,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
     [Fact]
     public async Task UpsertDeliveryConstraints_ReturnsOk()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var campaign = await CreateCampaignAsync(client);
         var request = new UpsertDeliveryConstraintsRequest(
@@ -61,6 +63,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
     [Fact]
     public async Task UpsertDeliveryConstraints_ReplacesExisting()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var campaign = await CreateCampaignAsync(client);
 
@@ -104,6 +107,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
     [Fact]
     public async Task UpsertDeliveryConstraints_InvalidCampaignId_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new UpsertDeliveryConstraintsRequest(
             Array.Empty<string>(),
@@ -121,6 +125,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
     [Fact]
     public async Task UpsertDeliveryConstraints_StartTimeAfterEndTime_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var campaign = await CreateCampaignAsync(client);
         var request = new UpsertDeliveryConstraintsRequest(
@@ -136,7 +141,7 @@ public class CampaignDeliveryConstraintsEndpointTests : IClassFixture<TestWebApp
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client)
     {

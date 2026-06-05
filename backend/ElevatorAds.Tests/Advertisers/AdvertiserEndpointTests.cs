@@ -15,6 +15,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostAdvertiser_CreatesAdvertiser()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new CreateAdvertiserRequest(
             "Acme",
@@ -40,6 +41,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetAdvertisers_ReturnsPagedResult_AndSupportsFiltering()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var alpha = await CreateAdvertiserAsync(client, "Alpha Media", "Active");
         var beta = await CreateAdvertiserAsync(client, "Beta Media", "Inactive");
@@ -80,6 +82,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task GetAdvertiser_ById_ReturnsAdvertiser()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateAdvertiserAsync(client);
 
@@ -96,6 +99,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PutAdvertiser_UpdatesAdvertiser()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateAdvertiserAsync(client);
         var request = new CreateAdvertiserRequest(
@@ -125,6 +129,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task DeleteAdvertiser_DeletesAdvertiser()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var created = await CreateAdvertiserAsync(client);
 
@@ -138,6 +143,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostAdvertiser_MissingName_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new CreateAdvertiserRequest(
             "",
@@ -156,6 +162,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task PostAdvertiser_InvalidEmail_Returns422()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var request = new CreateAdvertiserRequest(
             "Acme",
@@ -171,7 +178,7 @@ public class AdvertiserEndpointTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
     }
 
-    private HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private async Task<AdvertiserDto> CreateAdvertiserAsync(HttpClient client, string? name = null, string status = "Active")
     {

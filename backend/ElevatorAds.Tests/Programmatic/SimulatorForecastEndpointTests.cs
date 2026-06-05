@@ -6,9 +6,14 @@ namespace ElevatorAds.Tests.Programmatic;
 
 public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
+    private readonly TestWebApplicationFactory _factory;
+
+    public SimulatorForecastEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
+
     [Fact]
     public async Task PostForecast_WithValidRequest_ReturnsForecast()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var building = await CreateBuildingAsync(client, city: "Lisbon", buildingType: "Corporate", audience: 600);
         await CreateScreenAsync(client, building.Id, orientation: "Portrait", status: "Active");
@@ -42,6 +47,7 @@ public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplic
     [Fact]
     public async Task PostForecast_AppliesFilters_ToReduceEligibleScreens()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var lisbon = await CreateBuildingAsync(client, city: "Lisbon", buildingType: "Corporate", audience: 800);
         var porto = await CreateBuildingAsync(client, city: "Porto", buildingType: "Residential", audience: 500);
@@ -71,7 +77,8 @@ public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplic
     [Fact]
     public async Task PostForecast_WithInvalidDateRange_ReturnsBadRequest()
     {
-        var client = new TestWebApplicationFactory().CreateClient();
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/programmatic/simulator/forecast", new SimulatorForecastRequest(
             null,
@@ -91,7 +98,8 @@ public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplic
     [Fact]
     public async Task PostForecast_WithInvalidCreativeDuration_ReturnsBadRequest()
     {
-        var client = new TestWebApplicationFactory().CreateClient();
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/programmatic/simulator/forecast", new SimulatorForecastRequest(
             null,
@@ -111,6 +119,7 @@ public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplic
     [Fact]
     public async Task PostForecast_WhenAudienceDataMissing_ReturnsWarning()
     {
+        await _factory.ResetDatabaseAsync();
         var client = CreateClient();
         var building = await CreateBuildingAsync(client, city: "Lisbon", buildingType: "Commercial", audience: 0);
         await CreateScreenAsync(client, building.Id, orientation: "Landscape", status: "Active");
@@ -134,7 +143,7 @@ public sealed class SimulatorForecastEndpointTests : IClassFixture<TestWebApplic
         Assert.Contains(forecast!.Warnings, item => item.Contains("missing audience data", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static HttpClient CreateClient() => new TestWebApplicationFactory().CreateAuthenticatedClient();
+    private HttpClient CreateClient() => _factory.CreateAuthenticatedClient();
 
     private static async Task<BuildingDto> CreateBuildingAsync(
         HttpClient client,

@@ -17,6 +17,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Login_WithValidCredentials_ReturnsToken()
     {
+        await _factory.ResetDatabaseAsync();
         await SeedUserAsync("admin@test", "Password1!", Domain.Enums.UserRole.Admin);
         var client = _factory.CreateClient();
 
@@ -32,6 +33,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Login_WithWrongPassword_Returns401()
     {
+        await _factory.ResetDatabaseAsync();
         await SeedUserAsync("operator@test", "Password1!", Domain.Enums.UserRole.Operator);
         var client = _factory.CreateClient();
 
@@ -43,6 +45,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Login_WithUnknownUser_Returns401()
     {
+        await _factory.ResetDatabaseAsync();
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/auth/login", new { username = "missing@test", password = "Password1!" });
@@ -53,6 +56,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task WriteEndpoint_WithoutToken_Returns401()
     {
+        await _factory.ResetDatabaseAsync();
         var client = _factory.CreateClient();
 
         var response = await client.PostAsJsonAsync("/api/buildings", new { });
@@ -63,6 +67,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task WriteEndpoint_WithViewerToken_Returns403()
     {
+        await _factory.ResetDatabaseAsync();
         var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
 
         var response = await client.PostAsJsonAsync("/api/buildings", new
@@ -82,6 +87,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task WriteEndpoint_WithOperatorToken_CreatesBuilding()
     {
+        await _factory.ResetDatabaseAsync();
         var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueOperatorToken());
 
         var response = await client.PostAsJsonAsync("/api/buildings", new
@@ -101,6 +107,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreativeApprove_WithOperatorToken_Returns403()
     {
+        await _factory.ResetDatabaseAsync();
         var factory = (TestWebApplicationFactory)_factory;
         var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueOperatorToken());
 
@@ -141,6 +148,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task CreativeApprove_WithAdminToken_Succeeds()
     {
+        await _factory.ResetDatabaseAsync();
         var factory = (TestWebApplicationFactory)_factory;
         var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
@@ -181,6 +189,7 @@ public class AuthEndpointTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task ReadEndpoint_WithoutToken_Succeeds()
     {
+        await _factory.ResetDatabaseAsync();
         var client = _factory.CreateClient();
 
         var response = await client.GetAsync("/api/buildings");

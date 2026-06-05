@@ -89,6 +89,8 @@ builder.Services.AddScoped<ICampaignRepository, EfCampaignRepository>();
 builder.Services.AddScoped<CampaignService>();
 builder.Services.AddScoped<ICampaignBookingRequestRepository, EfCampaignBookingRequestRepository>();
 builder.Services.AddScoped<BookingRequestService>();
+builder.Services.AddScoped<ICampaignForecastRepository, EfCampaignForecastRepository>();
+builder.Services.AddScoped<CampaignForecastService>();
 builder.Services.AddScoped<ICampaignCreativeRepository, EfCampaignCreativeRepository>();
 builder.Services.AddScoped<CampaignCreativeService>();
 builder.Services.AddScoped<ICampaignDeliveryConstraintsRepository, EfCampaignDeliveryConstraintsRepository>();
@@ -623,6 +625,26 @@ bookingRequests.MapPost("/{id:guid}/reject", async (Guid id, BookingRequestServi
     if (!result.IsSuccess)
     {
         return Results.UnprocessableEntity(new { error = result.Error });
+    }
+
+    return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);
+}).RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+bookingRequests.MapGet("/{id:guid}/forecast", async (Guid id, CampaignForecastService service) =>
+{
+    var forecast = await service.GetLatestAsync(id);
+    return forecast is null ? Results.NotFound() : Results.Ok(forecast);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
+
+bookingRequests.MapPost("/{id:guid}/forecast", async (
+    Guid id,
+    CampaignForecastService service,
+    CancellationToken cancellationToken) =>
+{
+    var result = await service.GenerateAsync(id, cancellationToken);
+    if (!result.IsSuccess)
+    {
+        return Results.BadRequest(new { error = result.Error });
     }
 
     return result.Value is null ? Results.NotFound() : Results.Ok(result.Value);

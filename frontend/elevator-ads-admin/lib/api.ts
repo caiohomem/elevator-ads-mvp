@@ -3,7 +3,9 @@ import { dashboardSummary, recentActivity } from "@/lib/mockData";
 export {
   approveBookingRequest,
   createBookingRequest,
+  generateBookingRequestForecast,
   getBookingRequest,
+  getBookingRequestForecast,
   getBookingRequestsPaged,
   rejectBookingRequest,
   submitBookingRequest,

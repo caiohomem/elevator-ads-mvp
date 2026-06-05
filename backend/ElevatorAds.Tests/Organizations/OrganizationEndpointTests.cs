@@ -6,13 +6,17 @@ using System.Net.Http.Json;
 
 namespace ElevatorAds.Tests.Organizations;
 
-public class OrganizationEndpointTests
+public class OrganizationEndpointTests : IClassFixture<TestWebApplicationFactory>
 {
+    private readonly TestWebApplicationFactory _factory;
+
+    public OrganizationEndpointTests(TestWebApplicationFactory factory) => _factory = factory;
+
     [Fact]
     public async Task PostOrganization_AsAdmin_CreatesOrganization()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var request = new CreateOrganizationRequest("Acme Networks", "acme-networks", "active");
 
         var response = await client.PostAsJsonAsync("/api/organizations", request);
@@ -29,8 +33,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PostOrganization_WithoutName_ReturnsValidationFailure()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var request = new CreateOrganizationRequest(string.Empty, "no-name-org", "active");
 
         var response = await client.PostAsJsonAsync("/api/organizations", request);
@@ -41,8 +45,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PostOrganization_WithoutSlug_ReturnsValidationFailure()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var request = new CreateOrganizationRequest("No Slug Org", string.Empty, "active");
 
         var response = await client.PostAsJsonAsync("/api/organizations", request);
@@ -53,8 +57,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PostOrganization_WithInvalidSlugCharacters_ReturnsValidationFailure()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var request = new CreateOrganizationRequest("Invalid Slug", "Invalid Slug With Spaces", "active");
 
         var response = await client.PostAsJsonAsync("/api/organizations", request);
@@ -65,8 +69,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PostOrganization_WithDuplicateSlug_ReturnsValidationFailure()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
         var first = await client.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("First Org", "shared-slug", "active"));
@@ -81,8 +85,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PostOrganization_AsOperator_ReturnsForbidden()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueOperatorToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueOperatorToken());
         var request = new CreateOrganizationRequest("Acme Networks", "acme-networks", "active");
 
         var response = await client.PostAsJsonAsync("/api/organizations", request);
@@ -93,14 +97,14 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task GetOrganizations_AsViewer_ReturnsPagedResult()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
         await client.PostAsJsonAsync("/api/organizations", new CreateOrganizationRequest("Alpha", "alpha", "active"));
         await client.PostAsJsonAsync("/api/organizations", new CreateOrganizationRequest("Bravo", "bravo", "active"));
         await client.PostAsJsonAsync("/api/organizations", new CreateOrganizationRequest("Charlie", "charlie", "active"));
 
-        var viewerClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
+        var viewerClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
         var response = await viewerClient.GetAsync("/api/organizations?page=1&pageSize=2");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -109,20 +113,19 @@ public class OrganizationEndpointTests
         Assert.NotNull(paged);
         Assert.Equal(2, paged!.PageSize);
         Assert.Equal(2, paged.Items.Count);
-        // 3 created by this test + 1 default org seeded by DatabaseSeeder on startup
-        Assert.Equal(4, paged.TotalItems);
+        Assert.Equal(3, paged.TotalItems);
     }
 
     [Fact]
     public async Task GetOrganizationById_ReturnsOrganization()
     {
-        var factory = new TestWebApplicationFactory();
-        var adminClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var adminClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var createResponse = await adminClient.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("Solo", "solo-org", "active"));
         var created = (await createResponse.Content.ReadFromJsonAsync<OrganizationDto>())!;
 
-        var viewerClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
+        var viewerClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
         var response = await viewerClient.GetAsync($"/api/organizations/{created.Id}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -133,8 +136,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task PutOrganization_AsAdmin_UpdatesOrganization()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var createResponse = await client.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("Old Name", "old-slug", "active"));
         var created = (await createResponse.Content.ReadFromJsonAsync<OrganizationDto>())!;
@@ -152,8 +155,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task DeleteOrganization_AsAdmin_RemovesOrganization()
     {
-        var factory = new TestWebApplicationFactory();
-        var client = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var client = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         var createResponse = await client.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("Doomed", "doomed-org", "active"));
         var created = (await createResponse.Content.ReadFromJsonAsync<OrganizationDto>())!;
@@ -168,12 +171,12 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task GetOrganizationBySlug_ReturnsOrganization()
     {
-        var factory = new TestWebApplicationFactory();
-        var adminClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var adminClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
         await adminClient.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("By Slug", "by-slug", "active"));
 
-        var viewerClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
+        var viewerClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueViewerToken());
         var response = await viewerClient.GetAsync("/api/organizations/by-slug/by-slug");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -184,8 +187,8 @@ public class OrganizationEndpointTests
     [Fact]
     public async Task Buildings_FilteredByOrganization_ReturnOnlyTenantBuildings()
     {
-        var factory = new TestWebApplicationFactory();
-        var adminClient = factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
+        await _factory.ResetDatabaseAsync();
+        var adminClient = _factory.CreateAuthenticatedClient(TestTokenIssuer.IssueAdminToken());
 
         var orgACreate = await adminClient.PostAsJsonAsync("/api/organizations",
             new CreateOrganizationRequest("Tenant A", "tenant-a", "active"));
@@ -197,7 +200,7 @@ public class OrganizationEndpointTests
         // Create three buildings, all via HTTP. They will be assigned to the default organization
         // because the production code uses a default-tenant fallback. To test true scoping,
         // we manipulate the DB directly via the test factory.
-        using var scope = factory.Services.CreateScope();
+        using var scope = _factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ElevatorAds.Infrastructure.Persistence.AppDbContext>();
         context.Buildings.Add(new ElevatorAds.Domain.Entities.Building
         {
