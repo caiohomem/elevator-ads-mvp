@@ -60,11 +60,33 @@ When targeting NEON Postgres:
 3. The API applies EF Core migrations automatically on startup (see PR #84 / issue #83). The first deploy will create all tables.
 4. `DemoDataSeeder` is short-circuited against the InMemory provider used in tests, but it **will** run against a real database on the first startup. Set `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` (and optionally `SEED_OPERATOR_PASSWORD` / `SEED_VIEWER_PASSWORD`) to control the demo data; the seeders are idempotent and skip when data already exists.
 
-Example NEON connection string shape (do **not** commit a real one):
+### Connection string format (use Npgsql, not the NEON URL)
+
+The NEON console shows a URL-style connection string:
 
 ```text
-Host=ep-polished-rice-aqc7no8h-pooler.c-8.us-east-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=<from-neon-console>;Ssl Mode=Require
+postgresql://neondb_owner:npg_XXXXXXXX@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 ```
+
+**Do not paste that URL directly into `ConnectionStrings__Default`.** Npgsql 8/9/10 raises `KeyNotFoundException: The given key was not present in the dictionary` when it encounters URL parameters it does not recognise — most notably `channel_binding`, which is a libpq parameter that has no Npgsql equivalent. The URL format itself is also brittle (any extra `?` or unencoded character breaks the parser).
+
+Convert the URL to the Npgsql key/value format expected by `UseNpgsql(...)`. The translation is mechanical:
+
+| URL part | Npgsql key |
+|---|---|
+| `postgresql://USER:PASS@HOST/DB` | `Host=HOST;Port=5432;Database=DB;Username=USER;Password=PASS` |
+| `?sslmode=require` | `Ssl Mode=Require` |
+| `?channel_binding=require` | **drop it** (not supported by Npgsql) |
+| `?sslmode=verify-full` | `Ssl Mode=VerifyFull` |
+| any other `?key=value` | only include Npgsql-recognised keys; drop the rest |
+
+For the NEON pooled host the canonical string is:
+
+```text
+Host=ep-polished-rice-aqc7no8h-pooler.c-8.us-east-1.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=<from-neon-console>;Ssl Mode=Require;Pooling=true;Maximum Pool Size=10
+```
+
+Replace `<from-neon-console>` with the actual password from the NEON dashboard. **Never commit the real password.**
 
 ---
 
