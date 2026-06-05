@@ -172,6 +172,12 @@ app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
 {
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+
     var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DatabaseSeeder");
     await DatabaseSeeder.SeedAdminUserAsync(scope.ServiceProvider, logger);
     await DatabaseSeeder.SeedDefaultOrganizationAsync(scope.ServiceProvider, logger);
