@@ -412,6 +412,46 @@ export interface EstimatedProofOfPlayReport {
   warnings: string[];
 }
 
+export interface AdvertiserCampaignCreativeSummary {
+  creativeId: string;
+  creativeName: string;
+  mediaType: string;
+  durationSeconds: number;
+  totalPlays: number;
+  estimatedImpressions: number;
+}
+
+export interface AdvertiserCampaignDailyBreakdown {
+  date: string;
+  totalPlays: number;
+  estimatedAudience: number;
+  estimatedImpressions: number;
+  screensCount: number;
+  buildingsCount: number;
+}
+
+export interface AdvertiserCampaignReport {
+  advertiserId: string;
+  advertiserName: string;
+  campaignId: string;
+  campaignName: string;
+  dateFrom: string;
+  dateTo: string;
+  status: string;
+  totalPlays: number;
+  totalScheduledPlays: number;
+  totalReportedPlays: number;
+  estimatedAudience: number;
+  estimatedImpressions: number;
+  screensCount: number;
+  buildingsCount: number;
+  cities: string[];
+  creatives: AdvertiserCampaignCreativeSummary[];
+  dailyBreakdown: AdvertiserCampaignDailyBreakdown[];
+  assumptions: string[];
+  warnings: string[];
+}
+
 export interface ProofOfPlayEvent {
   id: string;
   screenId: string;

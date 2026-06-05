@@ -110,6 +110,7 @@ builder.Services.AddScoped<IProofOfPlayEventRepository, EfProofOfPlayEventReposi
 builder.Services.AddScoped<ProofOfPlayService>();
 builder.Services.AddScoped<DeliveryReportService>();
 builder.Services.AddScoped<EstimatedProofOfPlayService>();
+builder.Services.AddScoped<AdvertiserCampaignReportService>();
 builder.Services.AddScoped<IOrganizationRepository, EfOrganizationRepository>();
 builder.Services.AddScoped<OrganizationService>();
 
@@ -457,6 +458,27 @@ advertisers.MapPut("/{id:guid}", async (Guid id, UpdateAdvertiserRequest request
 advertisers.MapDelete("/{id:guid}", async (Guid id, AdvertiserService service) =>
     await service.DeleteAsync(id) ? Results.NoContent() : Results.NotFound())
     .RequireAuthorization(AuthPolicies.OperatorPolicy);
+
+advertisers.MapGet("/{advertiserId:guid}/campaign-reports/{campaignId:guid}", async (
+    Guid advertiserId,
+    Guid campaignId,
+    string? from,
+    string? to,
+    AdvertiserCampaignReportService service) =>
+{
+    if (!TryParseDate(from, out var fromDate) || !TryParseDate(to, out var toDate))
+    {
+        return Results.UnprocessableEntity(new { error = "From and To dates are required." });
+    }
+
+    if (toDate < fromDate)
+    {
+        return Results.UnprocessableEntity(new { error = "To must be greater than or equal to From." });
+    }
+
+    var report = await service.GenerateAsync(advertiserId, campaignId, fromDate, toDate);
+    return report is null ? Results.NotFound() : Results.Ok(report);
+}).RequireAuthorization(AuthPolicies.ViewerPolicy);
 
 var creatives = app.MapGroup("/api/creatives");
 
